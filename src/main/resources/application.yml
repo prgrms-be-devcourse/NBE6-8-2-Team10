@@ -13,7 +13,7 @@ jpa:
 spring:
   output:
     ansi:
-      enabled: always // ANSI 컬러 출력 설정
+      enabled: always # ANSI 컬러 출력 설정
 
 logging:
   level:
