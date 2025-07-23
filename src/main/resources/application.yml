@@ -10,6 +10,11 @@ jpa:
       show_sql: true        # 쿼리 로그 출력
       use_sql_comments: true # 쿼리 로그에 주석 사용
 
+spring:
+  output:
+    ansi:
+      enabled: always // ANSI 컬러 출력 설정
+
 logging:
   level:
     org.hibernate.orm.jdbc.bind: TRACE
