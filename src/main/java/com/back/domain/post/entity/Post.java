@@ -12,7 +12,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,12 +46,6 @@ public class Post extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status; //판매 상태
-
-    @Column(name = "protection_start_date")
-    private LocalDateTime protectionStartDate; //보호 시작일
-
-    @Column(name = "protection_end_date")
-    private LocalDateTime protectionEndDate; //보호 종료일
 
     //찜 개수
     @Column(name = "favorite_cnt", nullable = false)
@@ -112,4 +105,13 @@ public class Post extends BaseEntity {
             return label;
         }
     }
+
+    // 찜 개수 증가 및 감소
+    public void increaseFavoriteCnt() {
+        this.favoriteCnt += 1;
+    }
+    public void decreaseFavoriteCnt() {
+        this.favoriteCnt = Math.max(0, this.favoriteCnt - 1); // 음수 방지
+    }
+
 }
