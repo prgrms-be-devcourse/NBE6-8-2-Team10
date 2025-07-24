@@ -31,8 +31,9 @@ public class Trade extends BaseEntity {
     @Column(nullable = false)
     private TradeStatus status;
 
+
     public Trade( Member seller, Member buyer, int price, TradeStatus status) {
-        this.post = post;
+
         this.seller = seller;
         this.buyer = buyer;
         this.price = price;

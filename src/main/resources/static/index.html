@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Spring Boot WebSocket Chat</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.0/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+</head>
+<body>
+<h1>Spring Boot WebSocket Chat</h1>
+<div>
+    <input type="text" id="sender" placeholder="Your name">
+    <input type="text" id="message" placeholder="Message">
+    <button onclick="sendMessage()">Send</button>
+</div>
+<div id="messages"></div>
+
+<script>
+    var stompClient = null;
+
+    function connect() {
+        var socket = new SockJS('/chat');
+        stompClient = Stomp.over(socket);
+        stompClient.connect({}, function (frame) {
+            console.log('Connected: ' + frame);
+            stompClient.subscribe('/topic/messages', function (chatMessage) {
+                showMessage(JSON.parse(chatMessage.body));
+            });
+        });
+    }
+
+    function sendMessage() {
+        var sender = document.getElementById('sender').value;
+        var message = document.getElementById('message').value;
+        stompClient.send("/app/sendMessage", {}, JSON.stringify({'sender': sender, 'content': message}));
+    }
+
+    function showMessage(message) {
+        var messages = document.getElementById('messages');
+        var messageElement = document.createElement('div');
+        messageElement.appendChild(document.createTextNode(message.sender + ": " + message.content));
+        messages.appendChild(messageElement);
+    }
+
+    window.onload = connect;
+</script>
+</body>
+</html>
