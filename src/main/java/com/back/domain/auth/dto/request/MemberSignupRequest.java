@@ -1,4 +1,4 @@
-package com.back.domain.member.dto.request;
+package com.back.domain.auth.dto.request;
 
 import com.back.domain.member.entity.Member;
 import com.back.domain.member.entity.Role;
