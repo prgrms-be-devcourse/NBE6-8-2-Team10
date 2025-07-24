@@ -2,6 +2,7 @@ package com.back.domain.auth.controller;
 
 import com.back.domain.auth.dto.request.MemberSignupRequest;
 import com.back.domain.member.service.MemberService;
+import com.back.global.rsData.ResultCode;
 import com.back.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -26,15 +27,15 @@ public class AuthController {
     public ResponseEntity<RsData<String>> signup(@Valid @RequestBody MemberSignupRequest request) {
         try {
             memberService.signup(request);
-            return ResponseEntity.ok(new RsData<>("200-1", "회원가입 성공"));
+            return ResponseEntity.ok(new RsData<>(ResultCode.SIGNUP_SUCCESS, "회원가입 성공"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity
                     .badRequest()
-                    .body(new RsData<>("400-1", e.getMessage()));
+                    .body(new RsData<>(ResultCode.INVALID_REQUEST, e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new RsData<>("500-1", "서버 오류가 발생했습니다."));
+                    .body(new RsData<>(ResultCode.SERVER_ERROR, "서버 오류가 발생했습니다."));
         }
     }
 }
