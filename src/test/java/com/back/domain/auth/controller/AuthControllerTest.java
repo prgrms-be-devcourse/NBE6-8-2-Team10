@@ -101,7 +101,8 @@ public class AuthControllerTest {
                 1L,
                 "test@example.com",
                 "홍길동",
-                "USER"
+                "USER",
+                "https://example.com/profile.jpg"
         ));
 
         when(memberService.login(request)).thenReturn(response);

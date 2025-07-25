@@ -38,15 +38,29 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
 
+        // 요청 헤더에서 토큰 추출 (예: Authorization 헤더에서 "Bearer {token}")
         String token = resolveToken(request);
+
+        // 토큰이 존재하고 유효한 경우 인증 처리
         if (token != null) {
             try {
+                // 토큰이 유요한지 검증 (만료 여부, 서명 등)
                 if (jwtTokenProvider.validateToken(token)) {
+
+                    // 토큰에서 사용자 이메일 추출
                     String email = jwtTokenProvider.getEmailFromToken(token);
+
+                    // 이메일로 UserDetails(Spring Security 사용자 정보 객체) 조회
                     UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+
+                    // UserDetails 기반으로 UsernamePasswordAuthenticationToken 생성
                     UsernamePasswordAuthenticationToken auth =
                             new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+                    // 인증 정보에 요청 세부 정보를 설정
                     auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                    // SecurityContext에 인증 정보 설정
                     SecurityContextHolder.getContext().setAuthentication(auth);
                 }
             } catch (Exception e) {
