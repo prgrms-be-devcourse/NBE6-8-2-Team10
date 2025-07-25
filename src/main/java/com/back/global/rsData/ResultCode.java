@@ -1,8 +1,24 @@
 package com.back.global.rsData;
 
 public enum ResultCode {
-    SIGNUP_SUCCESS("200-1", 200, "회원가입 성공"),
+
+    // 200: 성공
+    LOGIN_SUCCESS("200-1", 200, "로그인 성공"),
+    SIGNUP_SUCCESS("200-2", 200, "회원가입 성공"),
+
+    // 400: 클라이언트 오류
     INVALID_REQUEST("400-1", 400, "요청 오류"),
+    MISSING_FIELDS("400-2", 400, "필수 필드 누락"),
+
+    // 401: 인증 오류
+    UNAUTHORIZED("401-1", 401, "인증 정보 없음"),
+    TOKEN_EXPIRED("401-2", 401, "토큰 만료"),
+    INVALID_CREDENTIALS("401-3", 401, "이메일 또는 비밀번호 불일치"),
+
+    // 403: 인가 오류
+    FORBIDDEN("403-1", 403, "접근 권한 오류"),
+
+    // 500: 서버 오류
     SERVER_ERROR("500-1", 500, "서버 오류"),
     // 필요한 코드들 계속 추가
     ;

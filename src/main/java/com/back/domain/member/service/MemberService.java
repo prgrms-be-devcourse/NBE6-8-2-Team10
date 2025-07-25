@@ -1,10 +1,18 @@
 package com.back.domain.member.service;
 
 
+import com.back.domain.auth.dto.request.MemberLoginRequest;
 import com.back.domain.auth.dto.request.MemberSignupRequest;
+import com.back.domain.auth.dto.response.MemberLoginResponse;
+import com.back.domain.member.dto.response.MemberInfoResponse;
 import com.back.domain.member.entity.Member;
 import com.back.domain.member.repository.MemberRepository;
+import com.back.global.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +23,8 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
+    private final JwtTokenProvider jwtTokenProvider;
 
 
     // 회원 가입
@@ -33,5 +43,25 @@ public class MemberService {
                 .build();
 
         memberRepository.save(member);
+    }
+
+    // 로그인
+    public MemberLoginResponse login(MemberLoginRequest request) {
+        // 1. 인증 시도
+        UsernamePasswordAuthenticationToken authToken =
+                new UsernamePasswordAuthenticationToken(request.email(), request.password());
+
+        Authentication authentication = authenticationManager.authenticate(authToken);
+
+        // 2. 인증 성공시 사용자 정보 로드
+        Member member = memberRepository.findByEmail(request.email())
+                .orElseThrow(() -> new UsernameNotFoundException("해당 사용자를 찾을 수 없습니다."));
+
+        // 3. JWT 생성
+        String accessToken = jwtTokenProvider.generateAccessToken(member);
+        String refreshToken = jwtTokenProvider.generateRefreshToken(member);
+
+        // 4. DTO 응답 반환
+        return new MemberLoginResponse(accessToken, refreshToken, MemberInfoResponse.fromEntity(member));
     }
 }

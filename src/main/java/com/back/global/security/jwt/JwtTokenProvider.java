@@ -1,5 +1,6 @@
 package com.back.global.security.jwt;
 
+import com.back.domain.member.entity.Member;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -28,20 +29,22 @@ public class JwtTokenProvider {
         this.refreshTokenValidity = refreshTokenValidity;
     }
 
-    public String generateAccessToken(String email) {
+    public String generateAccessToken(Member member) {
         Date now = new Date();
         return Jwts.builder()
-                .setSubject(email)
+                .setSubject(member.getEmail())
+                .claim("id", member.getId())
+                .claim("role", member.getRole().name())
                 .setIssuedAt(now)
                 .setExpiration(new Date(now.getTime() + accessTokenValidity))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    public String generateRefreshToken(String email) {
+    public String generateRefreshToken(Member member) {
         Date now = new Date();
         return Jwts.builder()
-                .setSubject(email)
+                .setSubject(member.getEmail())
                 .setIssuedAt(now)
                 .setExpiration(new Date(now.getTime() + refreshTokenValidity))
                 .signWith(key, SignatureAlgorithm.HS256)

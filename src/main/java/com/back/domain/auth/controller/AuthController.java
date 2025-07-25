@@ -1,6 +1,8 @@
 package com.back.domain.auth.controller;
 
+import com.back.domain.auth.dto.request.MemberLoginRequest;
 import com.back.domain.auth.dto.request.MemberSignupRequest;
+import com.back.domain.auth.dto.response.MemberLoginResponse;
 import com.back.domain.member.service.MemberService;
 import com.back.global.rsData.ResultCode;
 import com.back.global.rsData.RsData;
@@ -9,13 +11,14 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
@@ -32,6 +35,23 @@ public class AuthController {
             return ResponseEntity
                     .badRequest()
                     .body(new RsData<>(ResultCode.INVALID_REQUEST, e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new RsData<>(ResultCode.SERVER_ERROR, "서버 오류가 발생했습니다."));
+        }
+    }
+
+    @PostMapping("/login")
+    @Operation(summary = "로그인", description = "이메일과 비밀번호로 로그인합니다.")
+    public ResponseEntity<RsData<MemberLoginResponse>> login(@Valid @RequestBody MemberLoginRequest request) {
+        try {
+            MemberLoginResponse response = memberService.login(request);
+            return ResponseEntity.ok(new RsData<>(ResultCode.LOGIN_SUCCESS, "로그인 성공", response));
+        } catch (BadCredentialsException e) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(new RsData<>(ResultCode.INVALID_CREDENTIALS, "이메일 또는 비밀번호가 잘못되었습니다."));
         } catch (Exception e) {
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
