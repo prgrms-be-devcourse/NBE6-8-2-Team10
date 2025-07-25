@@ -31,14 +31,29 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**", "/h2-console/**").permitAll() // 운영 환경에서는 보안 위험이 될 수 있음 -> 추후 보완 필요
-                        //.requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/*.html").permitAll()  // HTML 파일 접근 허용
+                        // 인증 없이 접근 가능한 경로들
+                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/h2-console/**").permitAll()
+
+                        // Swagger 관련 경로들 - 더 구체적으로 설정
+                        .requestMatchers("/v3/api-docs/**").permitAll()
+                        .requestMatchers("/swagger-ui/**").permitAll()
+                        .requestMatchers("/swagger-ui.html").permitAll()
+                        .requestMatchers("/swagger-resources/**").permitAll()
+                        .requestMatchers("/webjars/**").permitAll()
+
+                        // WebSocket 관련 경로들
                         .requestMatchers("/chat/**").permitAll()     // WebSocket 엔드포인트 허용
                         .requestMatchers("/topic/**").permitAll()    // STOMP 구독 경로 허용
                         .requestMatchers("/app/**").permitAll()      // 메시지 전송 경로 허용
+
+                        // 정적 리소스
+                        .requestMatchers("/*.html").permitAll() // HTML 파일 접근 허용
+                        .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
+
                         .anyRequest().authenticated()
                 )
+                // JWT 필터를 조건부로 적용
                 .addFilterBefore(new JwtFilter(jwtTokenProvider, userDetailsService), UsernamePasswordAuthenticationFilter.class)
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable)); // H2 콘솔 접근 허용
 

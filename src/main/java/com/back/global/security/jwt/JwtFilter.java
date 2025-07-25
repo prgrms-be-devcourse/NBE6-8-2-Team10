@@ -13,7 +13,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Set;
 
+// JWT 필터 클래스
 @Component
 public class JwtFilter extends OncePerRequestFilter {
 
@@ -24,6 +26,13 @@ public class JwtFilter extends OncePerRequestFilter {
         this.jwtTokenProvider = jwtTokenProvider;
         this.userDetailsService = userDetailsService;
     }
+
+    // JWT 필터를 적용하지 않을 경로들
+    private static final Set<String> EXCLUDED_PATH_PREFIXES = Set.of(
+            "/auth/", "/h2-console/", "/v3/api-docs", "/swagger-ui",
+            "/swagger-resources", "/webjars/", "/ws/", "/chat/",
+            "/topic/", "/app/", "/css/", "/js/", "/images/"
+    );
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
@@ -55,5 +64,24 @@ public class JwtFilter extends OncePerRequestFilter {
             return bearer.substring(7);
         }
         return null;
+    }
+
+    // 필터가 적용 되지 않는 경로 설정 (Swagger, H2 콘솔 등)
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getRequestURI();
+
+        for (String prefix : EXCLUDED_PATH_PREFIXES) {
+            if (path.startsWith(prefix)) {
+                return true;
+            }
+        }
+
+        // HTML 파일들과 루트 경로
+        if (path.endsWith(".html") || path.equals("/") || path.equals("/home")) {
+            return true;
+        }
+
+        return false;
     }
 }

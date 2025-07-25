@@ -44,6 +44,7 @@ dependencies {
 
     // Swagger UI 및 OpenAPI 3.0 문서화
     implementation("io.swagger.core.v3:swagger-annotations:2.2.34")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9")
 
     // JWT 관련 추가
     implementation("io.jsonwebtoken:jjwt-api:0.11.5")
