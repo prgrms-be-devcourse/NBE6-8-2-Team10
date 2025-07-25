@@ -3,19 +3,20 @@ package com.back.domain.auth.controller;
 import com.back.domain.auth.dto.request.MemberLoginRequest;
 import com.back.domain.auth.dto.request.MemberSignupRequest;
 import com.back.domain.auth.dto.response.MemberLoginResponse;
+import com.back.domain.member.dto.response.MemberInfoResponse;
+import com.back.domain.member.entity.Member;
 import com.back.domain.member.service.MemberService;
 import com.back.global.rsData.ResultCode;
 import com.back.global.rsData.RsData;
+import com.back.global.security.auth.MemberDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -57,5 +58,20 @@ public class AuthController {
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new RsData<>(ResultCode.SERVER_ERROR, "서버 오류가 발생했습니다."));
         }
+    }
+
+    @GetMapping("/me")
+    @Operation(summary = "로그인 사용자 정보 조회", description = "유효한 JWT 토큰을 통해 현재 인증된 사용자 정보를 조회합니다.")
+    public ResponseEntity<RsData<MemberInfoResponse>> me(Authentication authentication) {
+        if (authentication == null || !(authentication.getPrincipal() instanceof MemberDetails memberDetails)) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(new RsData<>(ResultCode.UNAUTHORIZED, "로그인된 사용자가 없습니다."));
+        }
+
+        Member member = memberDetails.getMember();
+        MemberInfoResponse response = MemberInfoResponse.fromEntity(member);
+
+        return ResponseEntity.ok(new RsData<>(ResultCode.GET_ME_SUCCESS, "로그인 사용자 정보 조회 성공", response));
     }
 }
