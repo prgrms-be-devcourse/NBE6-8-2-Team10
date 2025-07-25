@@ -98,4 +98,24 @@ public class FilesService {
                 result
         );
     }
+
+
+    // 파일 개별 삭제 서비스
+    public RsData<Void> deleteFile(Long postId, Long fileId, Long memberId) {
+        // TODO: 실제 로그인한 회원 ID는 스프링 시큐리티나 Rq.getActor().getId()에서 받아야 함
+
+        Files file = filesRepository.findById(fileId)
+                .orElseThrow(() -> new IllegalArgumentException("파일이 존재하지 않습니다: " + fileId));
+
+        if (!file.getPost().getId().equals(postId)) {
+            throw new IllegalArgumentException("해당 게시글에 속하지 않는 파일입니다: " + fileId);
+        }
+        if (!file.getPost().getMember().getId().equals(memberId)) {
+            throw new IllegalArgumentException("해당 파일을 삭제할 권한이 없습니다. " + memberId);
+        }
+
+        filesRepository.deleteById(fileId);
+        return new RsData("200", "파일 삭제 성공", null);
+    }
+
 }

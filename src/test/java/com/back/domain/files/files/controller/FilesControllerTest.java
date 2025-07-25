@@ -21,8 +21,7 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -104,7 +103,7 @@ public class FilesControllerTest {
     @Test
     @DisplayName("파일 조회 성공 - 파일 있음")
     @WithMockUser(username = "test-user", roles = "USER")
-    void testGetFilesByPostId_Success() throws Exception {
+    void t3() throws Exception {
         long postId = 5L;
 
         List<FileUploadResponseDto> fileList = List.of(
@@ -139,7 +138,7 @@ public class FilesControllerTest {
     @Test
     @DisplayName("파일 조회 - 파일 없음(빈 파일, 정상)")
     @WithMockUser(username = "test-user", roles = "USER")
-    void testGetFilesByPostId_Empty() throws Exception {
+    void t4() throws Exception {
         long postId = 5L;
 
         RsData<List<FileUploadResponseDto>> rsData = new RsData<>(
@@ -158,5 +157,26 @@ public class FilesControllerTest {
                 .andExpect(jsonPath("$.data").isEmpty());
     }
 
+    @Test
+    @DisplayName("파일 삭제 성공")
+    @WithMockUser(username = "test-user", roles = "USER")
+    void t5() throws Exception {
+        long postId = 5L;
+        long fileId = 1L;
+
+        RsData<Void> rsData = new RsData<>(
+                "200",
+                "파일 삭제 성공",
+                null
+        );
+
+        // filesService.deleteFile 호출 시 응답 설정
+        given(filesService.deleteFile(postId, fileId, 1L)).willReturn(rsData); // memberId는 1L로 고정됨
+
+        mockMvc.perform(delete("/api/posts/{postId}/files/{fileId}", postId, fileId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.resultCode").value("200"))
+                .andExpect(jsonPath("$.msg").value("파일 삭제 성공"));
+    }
 
 }
