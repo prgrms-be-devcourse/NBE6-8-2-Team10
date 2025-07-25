@@ -4,11 +4,14 @@ import com.back.domain.member.entity.Member;
 import com.back.domain.member.repository.MemberRepository;
 import com.back.domain.post.entity.Post;
 import com.back.domain.post.repository.PostRepository;
+import com.back.domain.trade.dto.TradeDto;
 import com.back.domain.trade.entity.Trade;
 import com.back.domain.trade.entity.TradeStatus;
 import com.back.domain.trade.repository.TradeRepository;
 import com.back.global.exception.ServiceException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,5 +45,9 @@ public class TradeService {
         post.markAsSoldOut(); // 판매 완료로 상태 변경
 
         return trade;
+    }
+
+    public Page<TradeDto> getAllTrades(Pageable pageable) {
+        return tradeRepository.findAll(pageable).map(TradeDto::new);
     }
 }

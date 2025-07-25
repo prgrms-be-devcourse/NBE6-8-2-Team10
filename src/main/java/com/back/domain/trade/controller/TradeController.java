@@ -6,6 +6,7 @@ import com.back.domain.trade.service.TradeService;
 import com.back.global.rsData.RsData;
 import com.back.global.security.auth.MemberDetails;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/trades")
 @RequiredArgsConstructor
+@Tag(name = "TradeController", description = "거래 API 컨트롤러")
 public class TradeController {
     private final TradeService tradeService;
 
