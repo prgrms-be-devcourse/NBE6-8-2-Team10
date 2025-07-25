@@ -17,17 +17,19 @@ public class FilesController {
 
     private final FilesService filesService;
 
-    // 파일 업로드 API(게시글 저장 -> postId 받음, 이미지 저장)
+    // 파일 업로드 (게시글 저장 -> postId 받음, 이미지 저장)
     @PostMapping("/{postId}/files")
     public RsData<List<FileUploadResponseDto>> uploadFiles(
             @PathVariable @Positive long postId,
-            @RequestPart("files") MultipartFile[] files
+            @RequestPart(value = "files", required = false) MultipartFile[] files
     ) {
-        try {
-            List<FileUploadResponseDto> response = filesService.uploadFiles(postId, files);
-            return new RsData<>("200", "파일 업로드 성공", response);
-        } catch (Exception e) {
-            return new RsData<>("500", "파일 업로드 실패: " + e.getMessage(), null);
-        }
+        return filesService.uploadFiles(postId, files);
     }
+
+    // 파일 조회
+    @GetMapping("/{postId}/files")
+    public RsData<List<FileUploadResponseDto>> getFilesByPostId(@PathVariable Long postId) {
+        return filesService.getFilesByPostId(postId);
+    }
+
 }

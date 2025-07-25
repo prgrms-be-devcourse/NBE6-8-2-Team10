@@ -2,6 +2,7 @@ package com.back.domain.files.files.controller;
 
 import com.back.domain.files.files.dto.FileUploadResponseDto;
 import com.back.domain.files.files.service.FilesService;
+import com.back.global.rsData.RsData;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,7 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -56,7 +58,13 @@ public class FilesControllerTest {
                 )
         );
 
-        given(filesService.uploadFiles(eq(5L), any(MultipartFile[].class))).willReturn(response);
+        RsData<List<FileUploadResponseDto>> rsData = new RsData<>(
+                "200",
+                "파일 업로드 성공",
+                response
+        );
+
+        given(filesService.uploadFiles(eq(5L), any(MultipartFile[].class))).willReturn(rsData);
 
         mockMvc.perform(multipart("/api/posts/5/files")
                 .file(file1))
@@ -65,4 +73,90 @@ public class FilesControllerTest {
                 .andExpect(jsonPath("$.msg").value("파일 업로드 성공"))
                 .andExpect(jsonPath("$.data[0].fileName").value("test1.png"));
     }
+
+    @Test
+    @DisplayName("파일 없이 업로드 - 첨부된 파일 없음")
+    @WithMockUser(username = "test-user", roles = "USER")
+    void t2() throws Exception {
+        // 빈 응답 데이터
+        List<FileUploadResponseDto> emptyResponse = List.of();
+
+        // RsData 응답 구성
+        RsData<List<FileUploadResponseDto>> rsData = new RsData<>(
+                "200",
+                "첨부된 파일이 없습니다",
+                emptyResponse
+        );
+
+        given(filesService.uploadFiles(eq(5L), any(MultipartFile[].class))).willReturn(rsData);
+
+        // 실제 요청 (파일 없음)
+        mockMvc.perform(multipart("/api/posts/5/files")
+                        .file(new MockMultipartFile("files", new byte[0]))) // 빈 파일
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.resultCode").value("200"))
+                .andExpect(jsonPath("$.msg").value("첨부된 파일이 없습니다"))
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data").isEmpty());
+    }
+
+
+    @Test
+    @DisplayName("파일 조회 성공 - 파일 있음")
+    @WithMockUser(username = "test-user", roles = "USER")
+    void testGetFilesByPostId_Success() throws Exception {
+        long postId = 5L;
+
+        List<FileUploadResponseDto> fileList = List.of(
+                new FileUploadResponseDto(
+                        1L,
+                        postId,
+                        "test1.png",
+                        "image/png",
+                        20L,
+                        "http://example.com/uploads/test1.png",
+                        1,
+                        LocalDateTime.now()
+                )
+        );
+
+        RsData<List<FileUploadResponseDto>> rsData = new RsData<>(
+                "200",
+                "파일 목록 조회 성공",
+                fileList
+        );
+
+        given(filesService.getFilesByPostId(postId)).willReturn(rsData);
+
+        mockMvc.perform(get("/api/posts/{postId}/files", postId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.resultCode").value("200"))
+                .andExpect(jsonPath("$.msg").value("파일 목록 조회 성공"))
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data[0].fileName").value("test1.png"));
+    }
+
+    @Test
+    @DisplayName("파일 조회 - 파일 없음(빈 파일, 정상)")
+    @WithMockUser(username = "test-user", roles = "USER")
+    void testGetFilesByPostId_Empty() throws Exception {
+        long postId = 5L;
+
+        RsData<List<FileUploadResponseDto>> rsData = new RsData<>(
+                "200",
+                "첨부된 파일이 없습니다.",
+                List.of()
+        );
+
+        given(filesService.getFilesByPostId(postId)).willReturn(rsData);
+
+        mockMvc.perform(get("/api/posts/{postId}/files", postId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.resultCode").value("200"))
+                .andExpect(jsonPath("$.msg").value("첨부된 파일이 없습니다."))
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data").isEmpty());
+    }
+
+
 }
