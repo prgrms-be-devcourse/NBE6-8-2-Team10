@@ -14,7 +14,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Entity
 @Getter
@@ -90,6 +92,12 @@ public class Post extends BaseEntity {
         }
         public String getLabel() {
             return label;
+        }
+
+        public static Optional<Category> from(String name) {
+            return Arrays.stream(values())
+                    .filter(c -> c.name().equalsIgnoreCase(name))
+                    .findFirst();
         }
     }
 
