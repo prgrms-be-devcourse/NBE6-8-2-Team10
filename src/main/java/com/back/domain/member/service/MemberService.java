@@ -7,12 +7,12 @@ import com.back.domain.auth.dto.response.MemberLoginResponse;
 import com.back.domain.member.dto.response.MemberInfoResponse;
 import com.back.domain.member.entity.Member;
 import com.back.domain.member.repository.MemberRepository;
+import com.back.global.security.auth.MemberDetails;
 import com.back.global.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,9 +53,9 @@ public class MemberService {
 
         Authentication authentication = authenticationManager.authenticate(authToken);
 
-        // 2. 인증 성공시 사용자 정보 로드
-        Member member = memberRepository.findByEmail(request.email())
-                .orElseThrow(() -> new UsernameNotFoundException("해당 사용자를 찾을 수 없습니다."));
+        // 2. 인증 성공시 사용자 정보 로드 (authentication에서 직접 꺼내기)
+        MemberDetails memberDetails = (MemberDetails) authentication.getPrincipal();
+        Member member = memberDetails.getMember();
 
         // 3. JWT 생성
         String accessToken = jwtTokenProvider.generateAccessToken(member);
