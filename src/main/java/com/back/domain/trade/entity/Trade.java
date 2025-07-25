@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class Trade extends BaseEntity {
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", nullable = false)
     private Post post;
 
@@ -31,9 +31,8 @@ public class Trade extends BaseEntity {
     @Column(nullable = false)
     private TradeStatus status;
 
-
-    public Trade( Member seller, Member buyer, int price, TradeStatus status) {
-
+    public Trade(Post post, Member seller, Member buyer, int price, TradeStatus status) {
+        this.post = post;
         this.seller = seller;
         this.buyer = buyer;
         this.price = price;

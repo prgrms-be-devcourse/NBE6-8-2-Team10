@@ -5,6 +5,7 @@ import com.back.domain.chat.chat.entity.ChatRoom;
 import com.back.domain.files.files.entity.Files;
 import com.back.domain.member.entity.Member;
 import com.back.domain.trade.entity.Trade;
+import com.back.global.exception.ServiceException;
 import com.back.global.jpa.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -104,6 +105,13 @@ public class Post extends BaseEntity {
         public String getLabel() {
             return label;
         }
+    }
+    // 판매 상태 변경
+    public void markAsSoldOut() {
+        if (this.status == Status.SOLD_OUT) {
+            throw new ServiceException("400-3", "이미 판매 완료된 게시글입니다.");
+        }
+        this.status = Status.SOLD_OUT;
     }
 
     // 찜 개수 증가 및 감소

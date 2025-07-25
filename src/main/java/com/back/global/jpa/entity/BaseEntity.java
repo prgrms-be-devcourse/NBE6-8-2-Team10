@@ -21,7 +21,7 @@ import static jakarta.persistence.GenerationType.IDENTITY;
 public abstract class BaseEntity {
     @Id
     @GeneratedValue(strategy = IDENTITY)
-    private long id;
+    private Long id;
 
     @CreatedDate
     private LocalDateTime createdAt;
