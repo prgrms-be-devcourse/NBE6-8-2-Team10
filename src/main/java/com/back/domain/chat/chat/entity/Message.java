@@ -1,7 +1,8 @@
 package com.back.domain.chat.chat.entity;
 
-import com.back.global.jpa.entity.BaseEntity;
+import com.back.domain.chat.chat.dto.MessageDto;
 import com.back.domain.member.entity.Member;
+import com.back.global.jpa.entity.BaseEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
 import lombok.Getter;
@@ -22,4 +23,13 @@ public class Message extends BaseEntity {
 
     private String content;
 
+    public Message(Member sender, String content) {
+        this.sender = sender;
+        this.content = content;
+    }
+
+    public Message(MessageDto chatMessage, Member sender) {
+        this.sender = sender;
+        this.content = chatMessage.getContent();
+    }
 }

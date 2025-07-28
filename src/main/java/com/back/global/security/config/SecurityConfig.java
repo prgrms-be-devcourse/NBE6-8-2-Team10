@@ -46,8 +46,10 @@ public class SecurityConfig {
                         .requestMatchers("/chat/**").permitAll()     // WebSocket 엔드포인트 허용
                         .requestMatchers("/topic/**").permitAll()    // STOMP 구독 경로 허용
                         .requestMatchers("/app/**").permitAll()      // 메시지 전송 경로 허용
+                        // CORS 설정이 필요한 경우, CORS 필터를 추가해야 합니다.
 
                         // 정적 리소스
+                        .requestMatchers("/favicon.ico").permitAll()
                         .requestMatchers("/*.html").permitAll() // HTML 파일 접근 허용
                         .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
 
