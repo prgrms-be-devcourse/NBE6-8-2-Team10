@@ -71,6 +71,11 @@ public class ChatService {
             throw new ServiceException("400-1", "로그인 하셔야 합니다.");
         }
 
+
+        if (chatRoomRepository.findByPostIdAndUserName(postId, userName).isPresent()) {
+            throw new ServiceException("409-1", "이미 생성된 채팅방이 있습니다.");
+        }
+
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ServiceException("404-1", "존재하지 않는 게시글입니다."));
 
