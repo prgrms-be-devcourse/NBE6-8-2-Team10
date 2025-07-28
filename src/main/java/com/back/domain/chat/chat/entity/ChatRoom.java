@@ -21,4 +21,9 @@ public class ChatRoom extends BaseEntity {
 
     private String name;
 
+
+    public ChatRoom(Post post, String name) {
+        this.post = post;
+        this.name = name;
+    }
 }

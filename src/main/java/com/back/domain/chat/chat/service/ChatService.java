@@ -7,6 +7,8 @@ import com.back.domain.chat.chat.repository.ChatRoomRepository;
 import com.back.domain.chat.chat.repository.MessageRepository;
 import com.back.domain.member.entity.Member;
 import com.back.domain.member.repository.MemberRepository;
+import com.back.domain.post.entity.Post;
+import com.back.domain.post.repository.PostRepository;
 import com.back.global.exception.ServiceException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,7 @@ public class ChatService {
     private final MessageRepository messageRepository;
     private final MemberRepository memberRepository;
     private final ChatRoomRepository chatRoomRepository;
+    private final PostRepository postRepository;
 
     public Message saveMessage(MessageDto chatMessage) {
         Member sender = memberRepository.findById(chatMessage.getSenderId())
@@ -61,5 +64,17 @@ public class ChatService {
                     return dto;
                 })
                 .collect(Collectors.toList());
+    }
+
+    public void createChatRoom(Long postId, String userName) {
+        if(userName == null || userName.isEmpty()) {
+            throw new ServiceException("400-1", "로그인 하셔야 합니다.");
+        }
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new ServiceException("404-1", "존재하지 않는 게시글입니다."));
+
+        ChatRoom chatRoom = new ChatRoom(post, userName);
+        chatRoomRepository.save(chatRoom);
     }
 }
