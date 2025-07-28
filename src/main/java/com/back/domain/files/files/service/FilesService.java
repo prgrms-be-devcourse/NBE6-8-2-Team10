@@ -144,4 +144,23 @@ public class FilesService {
 
         return new RsData<>("200", dtoPage.isEmpty() ? "등록된 파일이 없습니다." : "파일 목록 조회 성공", dtoPage);
     }
+
+    // 파일 개별 조회(관리자)
+    public RsData<FileUploadResponseDto> adminGetFileById(Long fileId) {
+        Files file = filesRepository.findById(fileId)
+                .orElseThrow(() -> new IllegalArgumentException("파일이 존재하지 않습니다: " + fileId));
+
+        FileUploadResponseDto responseDto = new FileUploadResponseDto(
+                file.getId(),
+                file.getPost().getId(),
+                file.getFileName(),
+                file.getFileType(),
+                file.getFileSize(),
+                file.getFileUrl(),
+                file.getSortOrder(),
+                file.getCreatedAt()
+        );
+
+        return new RsData<>("200", "파일 조회 성공", responseDto);
+    }
 }

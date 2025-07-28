@@ -77,4 +77,26 @@ class AdminFilesControllerTest {
                 .andExpect(jsonPath("$.data.content").isArray())
                 .andExpect(jsonPath("$.data.content").isEmpty());
     }
+
+    @Test
+    @DisplayName("관리자 파일 단일 조회 - 성공")
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
+    void getFileById_success() throws Exception {
+        // given
+        FileUploadResponseDto mockDto = new FileUploadResponseDto(
+                1L, 10L, "test.png", "image/png", 2048L, "http://example.com/test.png", 1, LocalDateTime.now()
+        );
+        RsData<FileUploadResponseDto> response = new RsData<>("200", "파일 조회 성공", mockDto);
+
+        Mockito.when(filesService.adminGetFileById(1L)).thenReturn(response);
+
+        // when & then
+        mockMvc.perform(get("/api/admin/files/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.resultCode").value("200"))
+                .andExpect(jsonPath("$.msg").value("파일 조회 성공"))
+                .andExpect(jsonPath("$.data.fileName").value("test.png"))
+                .andExpect(jsonPath("$.data.fileType").value("image/png"))
+                .andExpect(jsonPath("$.data.fileSize").value(2048));
+    }
 }
