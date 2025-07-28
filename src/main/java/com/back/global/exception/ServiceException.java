@@ -13,6 +13,16 @@ public class ServiceException extends RuntimeException {
         this.msg = msg;
     }
 
+    // 예외 발생 시 클라이언트에게 전달할 ResultCode 반환
+    public String getResultCode() {
+        return resultCode;
+    }
+
+    // 예외 발생 시 클라이언트에게 전달할 Message 반환
+    public String getMsg() {
+        return msg;
+    }
+
     public RsData<Void> getRsData() {
         return new RsData<>(resultCode, msg, null);
     }

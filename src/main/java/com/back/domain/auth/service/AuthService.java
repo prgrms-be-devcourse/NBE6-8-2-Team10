@@ -1,7 +1,9 @@
 package com.back.domain.auth.service;
 
 import com.back.domain.auth.dto.request.MemberLoginRequest;
+import com.back.domain.auth.dto.request.TokenReissueRequest;
 import com.back.domain.auth.dto.response.MemberLoginResponse;
+import com.back.domain.auth.dto.response.TokenReissueResponse;
 import com.back.domain.member.dto.response.MemberInfoResponse;
 import com.back.domain.member.entity.Member;
 import com.back.domain.member.repository.MemberRepository;
@@ -63,5 +65,43 @@ public class AuthService {
     public void logout(Member member) {
         member.removeRefreshToken();
         memberRepository.save(member);
+    }
+
+    // Access Token 재발급
+    @Transactional
+    public TokenReissueResponse reissueAccessToken(TokenReissueRequest request) {
+        String refreshToken = request.refreshToken();
+
+        // 1. 토큰 유효성 확인
+        if (!jwtTokenProvider.validateToken(refreshToken)) {
+            throw new ServiceException(ResultCode.UNAUTHORIZED.code(), "유효하지 않은 리프레시 토큰입니다.");
+        }
+
+        // 2. 이메일 추출
+        String email = jwtTokenProvider.getEmailFromToken(refreshToken);
+
+        // 3. 사용자 조회
+        Member member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new ServiceException(ResultCode.MEMBER_NOT_FOUND.code(), "사용자를 찾을 수 없습니다."));
+
+        // 4. 저장된 리프레시 토큰과 일치하는지 확인
+        if (!refreshToken.equals(member.getRefreshToken())) {
+            throw new ServiceException(ResultCode.UNAUTHORIZED.code(), "토큰이 서버와 일치하지 않습니다.");
+        }
+
+        // 5. 새로운 토큰 생성
+        String newAccessToken = jwtTokenProvider.generateAccessToken(member);
+        String newRefreshToken = jwtTokenProvider.generateRefreshToken(member);
+
+        // 6. 리프레시 토큰도 갱신
+        member.updateRefreshToken(newRefreshToken);
+        try {
+            memberRepository.save(member);
+        } catch (DataIntegrityViolationException e) {
+            log.error("리프레시 토큰 갱신 실패", e);
+            throw new ServiceException(ResultCode.SERVER_ERROR.code(), "토큰 갱신에 실패했습니다.");
+        }
+
+        return new TokenReissueResponse(newAccessToken, newRefreshToken);
     }
 }

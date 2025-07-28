@@ -2,7 +2,9 @@ package com.back.domain.auth.controller;
 
 import com.back.domain.auth.dto.request.MemberLoginRequest;
 import com.back.domain.auth.dto.request.MemberSignupRequest;
+import com.back.domain.auth.dto.request.TokenReissueRequest;
 import com.back.domain.auth.dto.response.MemberLoginResponse;
+import com.back.domain.auth.dto.response.TokenReissueResponse;
 import com.back.domain.auth.service.AuthService;
 import com.back.domain.member.dto.response.MemberInfoResponse;
 import com.back.domain.member.entity.Member;
@@ -93,5 +95,27 @@ public class AuthController {
         authService.logout(member);
 
         return ResponseEntity.ok(new RsData<>(ResultCode.LOGOUT_SUCCESS, "로그아웃 성공", null));
+    }
+
+    // Access Token 재발급 API
+    @PostMapping("/reissue")
+    @Operation(summary = "AccessToken 재발급", description = "RefreshToken으로 AccessToken을 재발급 받습니다.")
+    public ResponseEntity<RsData<TokenReissueResponse>> reissue(@Valid @RequestBody TokenReissueRequest request) {
+        try {
+            TokenReissueResponse response = authService.reissueAccessToken(request);
+            return ResponseEntity.ok(new RsData<>(ResultCode.REISSUE_SUCCESS, "토큰 재발급 성공", response));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(new RsData<>(ResultCode.INVALID_REQUEST, e.getMessage()));
+        } catch (SecurityException e) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(new RsData<>(ResultCode.TOKEN_EXPIRED, "유효하지 않은 RefreshToken입니다."));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(new RsData<>(ResultCode.UNAUTHORIZED, "토큰 재발급에 실패했습니다."));
+        }
     }
 }
