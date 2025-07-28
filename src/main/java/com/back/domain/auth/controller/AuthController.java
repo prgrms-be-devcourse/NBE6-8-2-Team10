@@ -3,6 +3,7 @@ package com.back.domain.auth.controller;
 import com.back.domain.auth.dto.request.MemberLoginRequest;
 import com.back.domain.auth.dto.request.MemberSignupRequest;
 import com.back.domain.auth.dto.response.MemberLoginResponse;
+import com.back.domain.auth.service.AuthService;
 import com.back.domain.member.dto.response.MemberInfoResponse;
 import com.back.domain.member.entity.Member;
 import com.back.domain.member.service.MemberService;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final MemberService memberService;
+    private final AuthService authService;
 
     // 회원가입 API
     @PostMapping("/signup")
@@ -48,7 +50,7 @@ public class AuthController {
     @Operation(summary = "로그인", description = "이메일과 비밀번호로 로그인합니다.")
     public ResponseEntity<RsData<MemberLoginResponse>> login(@Valid @RequestBody MemberLoginRequest request) {
         try {
-            MemberLoginResponse response = memberService.login(request);
+            MemberLoginResponse response = authService.login(request);
             return ResponseEntity.ok(new RsData<>(ResultCode.LOGIN_SUCCESS, "로그인 성공", response));
         } catch (BadCredentialsException e) {
             return ResponseEntity
@@ -88,7 +90,7 @@ public class AuthController {
         }
 
         Member member = memberDetails.getMember();
-        memberService.logout(member);
+        authService.logout(member);
 
         return ResponseEntity.ok(new RsData<>(ResultCode.LOGOUT_SUCCESS, "로그아웃 성공", null));
     }
