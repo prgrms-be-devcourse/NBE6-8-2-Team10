@@ -1,4 +1,3 @@
-// src/main/java/com/back/domain/post/service/PostService.java
 package com.back.domain.post.service;
 
 import com.back.domain.post.dto.PostRequestDTO;
@@ -25,7 +24,6 @@ public class PostService {
                 .title(dto.title())
                 .description(dto.description())
                 .category(category)
-                .fileUrl(dto.fileUrl())
                 .price(dto.price())
                 .status(Post.Status.SALE)
                 .build();

@@ -8,7 +8,6 @@ public record FavoritePostDTO(
         long postId,
         String title,
         int price,
-        String fileUrl,
         int favoriteCnt,
         String status,
         LocalDateTime createdAt
@@ -18,7 +17,6 @@ public record FavoritePostDTO(
                 favoritePost.getPost().getId(),
                 favoritePost.getPost().getTitle(),
                 favoritePost.getPost().getPrice(),
-                favoritePost.getPost().getFileUrl(),
                 favoritePost.getPost().getFavoriteCnt(),
                 favoritePost.getPost().getStatus().getLabel(),
                 favoritePost.getPost().getCreatedAt()

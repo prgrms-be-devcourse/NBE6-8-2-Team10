@@ -40,9 +40,6 @@ public class Post extends BaseEntity {
     @Column(nullable = false)
     private Category category; //특허 종류
 
-    @Column(name = "file_url", length = 2048)
-    private String fileUrl; //첨부파일 URL
-
     @Column(nullable = false)
     private Integer price; //특허 가격
 
