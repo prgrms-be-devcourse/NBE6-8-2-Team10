@@ -64,4 +64,11 @@ public class MemberService {
         // 4. DTO 응답 반환
         return new MemberLoginResponse(accessToken, refreshToken, MemberInfoResponse.fromEntity(member));
     }
+
+    // 로그아웃
+    @Transactional
+    public void logout(Member member) {
+        member.removeRefreshToken();
+        memberRepository.save(member);
+    }
 }

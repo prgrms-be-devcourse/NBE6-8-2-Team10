@@ -30,7 +30,6 @@ public class TestDataInitializer implements ApplicationRunner {
     }
 
     // 일반 사용자 계정 생성
-    @Transactional
     public void initUser() {
         createUserIfNotExists("testuser1@user.com", "사용자1");
         createUserIfNotExists("testuser2@user.com", "사용자2");

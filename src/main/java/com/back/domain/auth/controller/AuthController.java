@@ -43,6 +43,7 @@ public class AuthController {
         }
     }
 
+    // 로그인 API
     @PostMapping("/login")
     @Operation(summary = "로그인", description = "이메일과 비밀번호로 로그인합니다.")
     public ResponseEntity<RsData<MemberLoginResponse>> login(@Valid @RequestBody MemberLoginRequest request) {
@@ -60,6 +61,7 @@ public class AuthController {
         }
     }
 
+    // 로그인 사용자 정보 조회 API
     @GetMapping("/me")
     @Operation(summary = "로그인 사용자 정보 조회", description = "유효한 JWT 토큰을 통해 현재 인증된 사용자 정보를 조회합니다.")
     public ResponseEntity<RsData<MemberInfoResponse>> me(Authentication authentication) {
@@ -73,5 +75,21 @@ public class AuthController {
         MemberInfoResponse response = MemberInfoResponse.fromEntity(member);
 
         return ResponseEntity.ok(new RsData<>(ResultCode.GET_ME_SUCCESS, "로그인 사용자 정보 조회 성공", response));
+    }
+
+    // 로그아웃 API
+    @PostMapping("/logout")
+    @Operation(summary = "로그아웃", description = "현재 로그인된 사용자의 refresh 토큰을 삭제합니다.")
+    public ResponseEntity<RsData<Void>> logout(Authentication authentication) {
+        if (authentication == null || !(authentication.getPrincipal() instanceof MemberDetails memberDetails)) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(new RsData<>(ResultCode.UNAUTHORIZED, "로그인된 사용자가 없습니다."));
+        }
+
+        Member member = memberDetails.getMember();
+        memberService.logout(member);
+
+        return ResponseEntity.ok(new RsData<>(ResultCode.LOGOUT_SUCCESS, "로그아웃 성공", null));
     }
 }

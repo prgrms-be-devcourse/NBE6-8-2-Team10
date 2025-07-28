@@ -6,6 +6,7 @@ public enum ResultCode {
     LOGIN_SUCCESS("200-1", 200, "로그인 성공"),
     SIGNUP_SUCCESS("200-2", 200, "회원가입 성공"),
     GET_ME_SUCCESS("200-3", 200, "사용자 정보 조회 성공"),
+    LOGOUT_SUCCESS("200-4", 200, "로그아웃 성공"),
 
     // 400: 클라이언트 오류
     INVALID_REQUEST("400-1", 400, "요청 오류"),

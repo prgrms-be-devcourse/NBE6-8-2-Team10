@@ -53,4 +53,9 @@ public class Member extends BaseEntity {
         this.status = (status != null) ? status : Status.ACTIVE;   // 기본 상태는 ACTIVE
     }
 
+    // 리프레시 토큰을 삭제(무효화)함
+    public void removeRefreshToken() {
+        this.refreshToken = null;
+    }
+
 }
