@@ -20,6 +20,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -98,5 +99,23 @@ class AdminFilesControllerTest {
                 .andExpect(jsonPath("$.data.fileName").value("test.png"))
                 .andExpect(jsonPath("$.data.fileType").value("image/png"))
                 .andExpect(jsonPath("$.data.fileSize").value(2048));
+    }
+
+    @Test
+    @DisplayName("관리자 파일 삭제 - 성공")
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
+    void deleteFile_success() throws Exception {
+        // given
+        Long fileId = 1L;
+        RsData<Void> response = new RsData<>("200", "파일 삭제 성공 (관리자)", null);
+
+        Mockito.when(filesService.adminDeleteFile(fileId)).thenReturn(response);
+
+        // when & then
+        mockMvc.perform(delete("/api/admin/files/{fileId}", fileId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.resultCode").value("200"))
+                .andExpect(jsonPath("$.msg").value("파일 삭제 성공 (관리자)"))
+                .andExpect(jsonPath("$.data").doesNotExist());
     }
 }

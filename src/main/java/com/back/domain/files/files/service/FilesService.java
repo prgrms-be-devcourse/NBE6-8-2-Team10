@@ -161,6 +161,20 @@ public class FilesService {
                 file.getCreatedAt()
         );
 
-        return new RsData<>("200", "파일 조회 성공", responseDto);
+        return new RsData<>("200", "파일 조회 성공 (관리자)", responseDto);
+    }
+
+    // 파일 삭제(관리자)
+    public RsData<Void> adminDeleteFile(Long fileId) {
+        Files file = filesRepository.findById(fileId)
+                .orElseThrow(() -> new IllegalArgumentException("파일이 존재하지 않습니다. " + fileId));
+
+        // TODO: 물리적 파일 삭제 로직 추가 필요
+        // String filePath = extractFilePath(file.getFileUrl());
+        // deletePhysicalFile(filePath);
+
+        filesRepository.deleteById(fileId);
+
+        return new RsData<>("200", "파일 삭제 성공 (관리자)", null);
     }
 }

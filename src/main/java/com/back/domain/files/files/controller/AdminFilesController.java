@@ -11,10 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/admin/files")
@@ -39,5 +36,12 @@ public class AdminFilesController {
     @Operation(summary = "파일 단일 조회", description = "관리자가 특정 파일을 조회합니다")
     public RsData<FileUploadResponseDto> getFileById(@PathVariable Long fileId) {
         return filesService.adminGetFileById(fileId);
+    }
+
+    // 관리자용 파일 삭제 API
+    @DeleteMapping("/{fileId}")
+    @Operation(summary = "파일 삭제", description = "관리자가 특정 파일을 삭제합니다")
+    public RsData<Void> deleteFile(@PathVariable Long fileId) {
+        return filesService.adminDeleteFile(fileId);
     }
 }
