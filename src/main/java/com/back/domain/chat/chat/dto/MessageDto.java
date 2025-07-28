@@ -22,9 +22,12 @@ public class MessageDto {
 
 
 
-    public MessageDto(String senderName, String content) {
+    public MessageDto(String senderName, String content, Long senderId, Long chatRoomId) {
         this.senderName = senderName;
         this.content = content;
+
+        this.senderId = senderId;
+        this.chatRoomId = chatRoomId;
     }
 
     // 기존 프론트엔드 호환성을 위한 getter

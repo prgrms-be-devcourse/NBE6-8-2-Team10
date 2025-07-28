@@ -14,10 +14,10 @@ import static org.mockito.Mockito.mock;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("ChatController 테스트")
-class ChatControllerTest {
+class ChatWebSocketControllerTest {
 
     @InjectMocks
-    private ChatController chatController;
+    private ChatWebSocketController chatWebSocketController;
 
     private SimpMessagingTemplate mockMessagingTemplate;
 
@@ -35,7 +35,7 @@ class ChatControllerTest {
         MessageDto inputMessage = new MessageDto("홍길동", "안녕하세요!");
 
         // when
-        MessageDto result = chatController.sendMessage(inputMessage);
+        MessageDto result = chatWebSocketController.sendMessage(inputMessage);
 
         // then
         assertThat(result)
@@ -60,7 +60,7 @@ class ChatControllerTest {
         MessageDto emptyMessage = new MessageDto("", "");
 
         // when
-        MessageDto result = chatController.sendMessage(emptyMessage);
+        MessageDto result = chatWebSocketController.sendMessage(emptyMessage);
 
         // then
         assertThat(result)
@@ -83,7 +83,7 @@ class ChatControllerTest {
         MessageDto nullMessage = null;
 
         // when
-        MessageDto result = chatController.sendMessage(nullMessage);
+        MessageDto result = chatWebSocketController.sendMessage(nullMessage);
 
         // then
         assertThat(result)
@@ -99,7 +99,7 @@ class ChatControllerTest {
         MessageDto longMessage = new MessageDto("사용자1", longContent);
 
         // when
-        MessageDto result = chatController.sendMessage(longMessage);
+        MessageDto result = chatWebSocketController.sendMessage(longMessage);
 
         // then
         assertThat(result)
@@ -125,7 +125,7 @@ class ChatControllerTest {
         MessageDto specialMessage = new MessageDto("테스트유저", specialContent);
 
         // when
-        MessageDto result = chatController.sendMessage(specialMessage);
+        MessageDto result = chatWebSocketController.sendMessage(specialMessage);
 
         // then
         assertThat(result)
@@ -150,7 +150,7 @@ class ChatControllerTest {
         MessageDto mixedMessage = new MessageDto("User123", "안녕하세요 Hello 12345");
 
         // when
-        MessageDto result = chatController.sendMessage(mixedMessage);
+        MessageDto result = chatWebSocketController.sendMessage(mixedMessage);
 
         // then
         assertThat(result)
@@ -175,7 +175,7 @@ class ChatControllerTest {
         MessageDto spaceMessage = new MessageDto("   ", "   ");
 
         // when
-        MessageDto result = chatController.sendMessage(spaceMessage);
+        MessageDto result = chatWebSocketController.sendMessage(spaceMessage);
 
         // then
         assertThat(result)
@@ -233,7 +233,7 @@ class ChatControllerTest {
         defaultMessage.setContent("후처리메시지");
 
         // when
-        MessageDto result = chatController.sendMessage(defaultMessage);
+        MessageDto result = chatWebSocketController.sendMessage(defaultMessage);
 
         // then
         assertThat(result)

@@ -11,6 +11,10 @@ import com.back.global.exception.ServiceException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class ChatService {
@@ -34,5 +38,28 @@ public class ChatService {
 
     public boolean isParticipant(Long chatRoomId, Long senderId) {
         return false;
+    }
+
+    public List<MessageDto> getChatRoomMessages(Long chatRoomId) {
+        // 채팅방 존재 확인
+        if( !chatRoomRepository.existsById(chatRoomId)) {
+            throw new ServiceException("404-4", "존재하지 않는 채팅방입니다.");
+        }
+
+        // 메시지 조회 (시간순 정렬)
+        List<Message> messages = messageRepository.findByChatRoomId(chatRoomId);
+
+        messages.sort(Comparator.comparing(Message::getCreatedAt));
+        // Entity -> DTO 변환
+        return messages.stream()
+                .map(message -> {
+                    MessageDto dto = new MessageDto();
+                    dto.setSenderId(message.getSender().getId());
+                    dto.setSenderName(message.getSender().getName());
+                    dto.setChatRoomId(message.getChatRoom().getId());
+                    dto.setContent(message.getContent());
+                    return dto;
+                })
+                .collect(Collectors.toList());
     }
 }
