@@ -6,12 +6,14 @@ import com.back.global.security.auth.MemberDetails;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 @Component
-@Scope("request")  // 요청마다 Rq 인스턴스를 새로 생성해 상태를 분리
+@Scope(value = "request", proxyMode = ScopedProxyMode.TARGET_CLASS)
+  // 요청마다 Rq 인스턴스를 새로 생성해 상태를 분리
 @RequiredArgsConstructor
 public class Rq {
 

@@ -47,7 +47,13 @@ public class TradeService {
         return trade;
     }
 
+    @Transactional(readOnly = true)
     public Page<TradeDto> getAllTrades(Pageable pageable) {
         return tradeRepository.findAll(pageable).map(TradeDto::new);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<TradeDto> getMyTrades(Long memberId, Pageable pageable) {
+        return tradeRepository.findByBuyerOrSeller(memberId, memberId, pageable).map(TradeDto::new);
     }
 }
