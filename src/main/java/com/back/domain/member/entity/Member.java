@@ -58,4 +58,13 @@ public class Member extends BaseEntity {
         this.refreshToken = null;
     }
 
+    // 리프레시 토큰을 설정함
+    public void updateRefreshToken(String refreshToken) {
+        // 유효성 검사: 리프레시 토큰이 null 또는 빈 문자열이 아닌지 확인
+        if (refreshToken == null || refreshToken.trim().isEmpty()) {
+            throw new IllegalArgumentException("리프레시 토큰은 null 또는 빈 문자열일 수 없습니다.");
+        }
+        this.refreshToken = refreshToken;
+    }
+
 }

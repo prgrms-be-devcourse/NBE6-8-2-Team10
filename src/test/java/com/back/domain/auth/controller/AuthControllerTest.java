@@ -105,7 +105,7 @@ public class AuthControllerTest {
     }
 
     @Test
-    @DisplayName("로그인 성공")
+    @DisplayName("로그인 성공(서비스만)")
     void login_success() throws Exception {
         // given
         MemberLoginRequest request = new MemberLoginRequest("user1@user.com", "user1234!");
@@ -180,6 +180,10 @@ public class AuthControllerTest {
                 loginResponseJson, new TypeReference<RsData<Map<String, Object>>>() {});
 
         String accessToken = loginRsData.data().get("accessToken").toString();
+
+        // 로그인 직후 refreshToken이 설정되었는지 확인
+        Member memberAfterLogin = memberRepository.findByEmail("user1@user.com").orElseThrow();
+        assertThat(memberAfterLogin.getRefreshToken()).isNotNull();
 
         // when - 로그아웃 요청
         MvcResult logoutResult = mockMvc.perform(post("/api/auth/logout")
