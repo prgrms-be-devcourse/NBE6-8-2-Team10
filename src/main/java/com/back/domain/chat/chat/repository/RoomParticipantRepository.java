@@ -10,4 +10,5 @@ import java.util.List;
 public interface RoomParticipantRepository extends JpaRepository<RoomParticipant, Long> {
     boolean existsByChatRoomIdAndMemberIdAndIsActiveTrue(Long chatRoomId, Long memberId);
     List<RoomParticipant> findByChatRoomIdAndIsActiveTrue(Long chatRoomId);
+    List<RoomParticipant> findByChatRoomPostIdAndMemberIdAndIsActiveTrue(Long postId, Long memberId);
 }

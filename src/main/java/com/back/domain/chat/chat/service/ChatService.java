@@ -98,38 +98,42 @@ public class ChatService {
 
         Member postAuthor = post.getMember();
 
-        // 먼저 해당 게시글에 대한 채팅방이 이미 존재하는지 확인
-        List<ChatRoom> existingChatRooms = chatRoomRepository.findByPostId(postId);
-        
-        if (!existingChatRooms.isEmpty()) {
-            // 첫 번째 채팅방을 사용 (이론적으로 하나만 있어야 함)
-            ChatRoom chatRoom = existingChatRooms.get(0);
-            
-            // 요청자가 이미 이 채팅방의 참여자인지 확인
-            boolean isAlreadyParticipant = roomParticipantRepository
-                    .existsByChatRoomIdAndMemberIdAndIsActiveTrue(chatRoom.getId(), requester.getId());
-            
-            if (!isAlreadyParticipant) {
-                // 참여자가 아니라면 참여자로 추가
-                roomParticipantRepository.save(new RoomParticipant(chatRoom, requester));
-            }
-            
-            // 기존 채팅방 ID 반환
-            return chatRoom.getId();
+        // 본인 게시글에는 채팅방을 만들 수 없도록 제한
+        if (requester.getId().equals(postAuthor.getId())) {
+            throw new ServiceException("400-2", "본인의 게시글에는 채팅할 수 없습니다.");
         }
 
-        // 해당 게시글에 대한 채팅방이 없다면 새로 생성
+        // requester가 참여한 해당 게시글의 채팅방들 찾기
+        List<RoomParticipant> requesterParticipations = roomParticipantRepository
+            .findByChatRoomPostIdAndMemberIdAndIsActiveTrue(postId, requester.getId());
+        
+        // 각 채팅방에서 postAuthor도 참여하고 있고, 참여자가 2명인지 확인
+        for (RoomParticipant participation : requesterParticipations) {
+            ChatRoom chatRoom = participation.getChatRoom();
+            
+            // 이 채팅방의 참여자 수와 postAuthor 참여 여부 확인
+            List<RoomParticipant> participants = roomParticipantRepository
+                .findByChatRoomIdAndIsActiveTrue(chatRoom.getId());
+                
+            if (participants.size() == 2) {
+                boolean hasPostAuthor = participants.stream()
+                    .anyMatch(p -> p.getMember().getId().equals(postAuthor.getId()));
+                    
+                if (hasPostAuthor) {
+                    // 1대1 채팅방 발견!
+                    return chatRoom.getId();
+                }
+            }
+        }
+
+        // 기존 1대1 채팅방이 없다면 새로 생성
         ChatRoom chatRoom = new ChatRoom(post, requester);
         ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
 
-        // 채팅방 생성자와 게시글 작성자를 참여자로 추가
+        // 정확히 2명만 참여자로 추가
         roomParticipantRepository.save(new RoomParticipant(savedChatRoom, requester));
-        
-        // 게시글 작성자와 채팅방 생성자가 다른 경우에만 게시글 작성자도 참여자로 추가
-        if (!requester.getId().equals(postAuthor.getId())) {
-            roomParticipantRepository.save(new RoomParticipant(savedChatRoom, postAuthor));
-        }
-        
+        roomParticipantRepository.save(new RoomParticipant(savedChatRoom, postAuthor));
+
         return savedChatRoom.getId();
     }
     @Transactional
