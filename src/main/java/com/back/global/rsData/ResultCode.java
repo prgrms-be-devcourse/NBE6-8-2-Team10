@@ -8,6 +8,7 @@ public enum ResultCode {
     GET_ME_SUCCESS("200-3", 200, "사용자 정보 조회 성공"),
     LOGOUT_SUCCESS("200-4", 200, "로그아웃 성공"),
     REISSUE_SUCCESS("200-5", 200, "AccessToken 재발급 성공"),
+    MEMBER_DELETE_SUCCESS("200-6", 200, "회원 탈퇴 성공"),
 
     // 400: 클라이언트 오류
     INVALID_REQUEST("400-1", 400, "요청 오류"),

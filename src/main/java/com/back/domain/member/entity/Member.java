@@ -67,4 +67,18 @@ public class Member extends BaseEntity {
         this.refreshToken = refreshToken;
     }
 
+    // 회원 탈퇴 (상태 변경)
+    public void delete() {
+        // 1. 이미 탈퇴한 회원인지 확인
+        if (this.status == Status.DELETED) {
+            throw new IllegalStateException("이미 탈퇴한 회원입니다.");
+        }
+
+        // 2 회원 상태를 DELETED로 변경
+        this.status = Status.DELETED;
+
+        // 3. 탈퇴 시간을 현재 시간으로 설정
+        this.deletedAt = LocalDateTime.now();
+    }
+
 }
