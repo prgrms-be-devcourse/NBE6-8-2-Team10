@@ -3,6 +3,7 @@ package com.back.domain.auth.controller;
 import com.back.domain.auth.dto.request.MemberLoginRequest;
 import com.back.domain.auth.dto.request.MemberSignupRequest;
 import com.back.domain.auth.dto.request.TokenReissueRequest;
+import com.back.domain.files.files.service.FileStorageService;
 import com.back.domain.member.entity.Member;
 import com.back.domain.member.entity.Role;
 import com.back.domain.member.entity.Status;
@@ -14,7 +15,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +23,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
@@ -50,26 +51,14 @@ public class AuthControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    // 테스트 데이터 삽입용 의존성 (예시)
     @Autowired
     private MemberRepository memberRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @BeforeEach
-    void setup() {
-        // JWT 로그인 테스트용 계정 추가
-        Member member = Member.builder()
-                .email("user1@user.com")
-                .password(passwordEncoder.encode("user1234!")) // 암호화 필수
-                .name("Test User")
-                .role(Role.USER)
-                .status(Status.ACTIVE)
-                .build();
-
-        memberRepository.save(member);
-    }
+    @MockitoBean
+    private FileStorageService fileStorageService;
 
     @Test
     @DisplayName("회원가입 성공")

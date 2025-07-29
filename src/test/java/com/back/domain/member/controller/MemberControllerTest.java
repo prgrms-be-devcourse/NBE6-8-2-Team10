@@ -1,6 +1,7 @@
 package com.back.domain.member.controller;
 
 import com.back.domain.auth.dto.request.MemberLoginRequest;
+import com.back.domain.files.files.service.FileStorageService;
 import com.back.domain.member.entity.Member;
 import com.back.domain.member.entity.Status;
 import com.back.domain.member.repository.MemberRepository;
@@ -15,6 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,11 +48,14 @@ public class MemberControllerTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @MockitoBean
+    private FileStorageService fileStorageService;
+
     @Test
     @DisplayName("회원 탈퇴 성공 - 로그인 후 DELETE /api/members/me 호출")
     void delete_account_success() throws Exception {
         // given - 테스트용 회원 저장
-        String email = "user1@user.com";
+        String email = "testUser1@user.com";
         String password = "user1234!";
         Member member = Member.builder()
                 .email(email)
