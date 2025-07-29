@@ -1,5 +1,6 @@
 package com.back.domain.trade.controller;
 
+import com.back.domain.member.entity.Member;
 import com.back.domain.trade.dto.TradeDto;
 import com.back.domain.trade.dto.TradePageResponse;
 import com.back.domain.trade.entity.Trade;
@@ -47,8 +48,8 @@ public class TradeController {
     @GetMapping("")
     @Operation(summary = "본인 모든 거래 조회")
     public RsData<TradePageResponse<TradeDto>> getMyTrades(Pageable pageable){
-        Long memberId = rq.getMemberId();
-        Page<TradeDto> trades = tradeService.getMyTrades(memberId, pageable);
+        Member member = rq.getMember();
+        Page<TradeDto> trades = tradeService.getMyTrades(member, pageable);
         return new RsData<> (
                 "200-1",
                 "거래 목록 조회 성공",
