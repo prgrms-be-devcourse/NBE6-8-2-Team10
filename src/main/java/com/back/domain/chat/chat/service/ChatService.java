@@ -74,7 +74,7 @@ public class ChatService {
         }
 
 
-        if (chatRoomRepository.findByPostIdAndUserName(postId, userName).isPresent()) {
+        if (chatRoomRepository.findByPostIdAndName(postId, userName).isPresent()) {
             throw new ServiceException("409-1", "이미 생성된 채팅방이 있습니다.");
         }
 
@@ -97,14 +97,22 @@ public class ChatService {
                     // 마지막 메시지 조회
                     Message lastMessage = messageRepository.findFirstByChatRoomIdOrderByCreatedAtDesc(chatRoom.getId());
                     String lastContent = (lastMessage != null) ? lastMessage.getContent() : "메시지가 없습니다.";
-                    
+
                     return new ChatRoomDto(
-                        chatRoom.getId(), 
-                        chatRoom.getName(), 
-                        chatRoom.getPost().getId(), 
+                        chatRoom.getId(),
+                        chatRoom.getName(),
+                        chatRoom.getPost().getId(),
                         lastContent
                     );
                 })
                 .collect(Collectors.toList());
+    }
+
+    public ChatRoomDto deleteChatRoom(Long chatRoomId, String name) {
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
+                .orElseThrow(() -> new ServiceException("404-4", "존재하지 않는 채팅방입니다."));
+
+
+        return null;
     }
 }
