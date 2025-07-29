@@ -1,5 +1,6 @@
 package com.back.domain.chat.chat.controller;
 
+import com.back.domain.chat.chat.dto.ChatRoomDto;
 import com.back.domain.chat.chat.dto.MessageDto;
 import com.back.domain.chat.chat.service.ChatService;
 import com.back.global.rsData.RsData;
@@ -22,10 +23,17 @@ public class ChatRestController {
         return new RsData<>("200-1", "채팅방 메시지 조회 성공", messageDtos);
     }
 
-    @PostMapping("/room/{postId}")
+    @PostMapping("/rooms/{postId}")
     public RsData<Void> createChatRoom(@PathVariable Long postId, Principal principal){
         chatService.createChatRoom(postId, principal.getName());
 
         return new RsData<>("200-1", "채팅방 생성 성공");
+    }
+
+    @GetMapping("/rooms/my")
+    public RsData<List<ChatRoomDto>> getMyChatRooms(Principal principal) {
+        List<ChatRoomDto> chatRooms = chatService.getMyChatRooms(principal);
+
+        return new RsData<>("200-1", "내 채팅방 목록 조회 성공", chatRooms);
     }
 }
