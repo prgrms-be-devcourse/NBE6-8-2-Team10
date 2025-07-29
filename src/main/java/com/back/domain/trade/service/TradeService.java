@@ -15,6 +15,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.NoSuchElementException;
+
 @Service
 @RequiredArgsConstructor
 public class TradeService {
@@ -55,5 +57,11 @@ public class TradeService {
     @Transactional(readOnly = true)
     public Page<TradeDto> getMyTrades(Member member, Pageable pageable) {
         return tradeRepository.findByBuyerOrSeller(member, member, pageable).map(TradeDto::new);
+    }
+
+    @Transactional(readOnly = true)
+    public Trade findLatest() {
+        return tradeRepository.findFirstByOrderByCreatedAtDesc()
+                .orElseThrow(() -> new NoSuchElementException("최근 거래 내역이 없습니다."));
     }
 }
