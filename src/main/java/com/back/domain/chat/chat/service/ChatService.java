@@ -73,15 +73,22 @@ public class ChatService {
             throw new ServiceException("400-1", "로그인 하셔야 합니다.");
         }
 
+        // 사용자명으로 Member 엔티티 조회
+        Member member = memberRepository.findByName(userName)
+                .orElseThrow(() -> new ServiceException("404-3", "존재하지 않는 사용자입니다."));
 
-        if (chatRoomRepository.findByPostIdAndName(postId, userName).isPresent()) {
+
+        // 이미 해당 게시글에 해당 사용자가 만든 채팅방이 있는지 확인
+        if (chatRoomRepository.findByPostIdAndMemberId(postId, member.getId()).isPresent()) {
+
             throw new ServiceException("409-1", "이미 생성된 채팅방이 있습니다.");
         }
 
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ServiceException("404-1", "존재하지 않는 게시글입니다."));
 
-        ChatRoom chatRoom = new ChatRoom(post, userName);
+        // Member 엔티티를 사용해서 채팅방 생성
+        ChatRoom chatRoom = new ChatRoom(post, member);
         chatRoomRepository.save(chatRoom);
     }
 
@@ -90,7 +97,12 @@ public class ChatService {
             throw new ServiceException("400-1", "로그인 하셔야 합니다.");
         }
 
-        List<ChatRoom> chatRooms = chatRoomRepository.findByNameOrderByCreatedAtDesc(principal.getName());
+        // 사용자명으로 Member 엔티티 조회
+        Member member = memberRepository.findByName(principal.getName())
+                .orElseThrow(() -> new ServiceException("404-3", "존재하지 않는 사용자입니다."));
+
+        // Member ID로 채팅방 조회
+        List<ChatRoom> chatRooms = chatRoomRepository.findByMemberIdOrderByCreatedAtDesc(member.getId());
 
         return chatRooms.stream()
                 .map(chatRoom -> {
@@ -100,7 +112,7 @@ public class ChatService {
 
                     return new ChatRoomDto(
                         chatRoom.getId(),
-                        chatRoom.getName(),
+                        chatRoom.getRoomName(),
                         chatRoom.getPost().getId(),
                         lastContent
                     );
@@ -108,11 +120,11 @@ public class ChatService {
                 .collect(Collectors.toList());
     }
 
-    public ChatRoomDto deleteChatRoom(Long chatRoomId, String name) {
+
+    public void deleteChatRoom(Long chatRoomId) {
         ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
                 .orElseThrow(() -> new ServiceException("404-4", "존재하지 않는 채팅방입니다."));
 
-
-        return null;
+        chatRoomRepository.delete(chatRoom);
     }
 }
