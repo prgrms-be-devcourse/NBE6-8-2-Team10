@@ -4,8 +4,10 @@ import com.back.domain.chat.chat.dto.ChatRoomDto;
 import com.back.domain.chat.chat.dto.MessageDto;
 import com.back.domain.chat.chat.entity.ChatRoom;
 import com.back.domain.chat.chat.entity.Message;
+import com.back.domain.chat.chat.entity.RoomParticipant;
 import com.back.domain.chat.chat.repository.ChatRoomRepository;
 import com.back.domain.chat.chat.repository.MessageRepository;
+import com.back.domain.chat.chat.repository.RoomParticipantRepository;
 import com.back.domain.member.entity.Member;
 import com.back.domain.member.entity.Role;
 import com.back.domain.member.entity.Status;
@@ -28,7 +30,6 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -45,6 +46,9 @@ class ChatServiceTest {
 
     @Mock
     private PostRepository postRepository;
+
+    @Mock
+    private RoomParticipantRepository roomParticipantRepository;
 
     @InjectMocks
     private ChatService chatService;
@@ -66,8 +70,25 @@ class ChatServiceTest {
                 .status(Status.ACTIVE)
                 .build();
 
+        // Member ID 설정
+        try {
+            java.lang.reflect.Field idField = mockMember.getClass().getSuperclass().getDeclaredField("id");
+            idField.setAccessible(true);
+            idField.set(mockMember, 1L);
+        } catch (Exception e) {
+            // ignore
+        }
+
+        Member postAuthor = Member.builder()
+                .email("author@test.com")
+                .password("password")
+                .name("author")
+                .role(Role.USER)
+                .status(Status.ACTIVE)
+                .build();
+
         Post mockPost = Post.builder()
-                .member(mockMember)
+                .member(postAuthor)
                 .title("테스트 게시글")
                 .description("테스트 내용")
                 .category(Post.Category.PRODUCT)
@@ -88,6 +109,7 @@ class ChatServiceTest {
         verify(chatRoomRepository, times(1)).findByPostIdAndMemberId(postId, mockMember.getId());
         verify(postRepository, times(1)).findById(postId);
         verify(chatRoomRepository, times(1)).save(any(ChatRoom.class));
+        verify(roomParticipantRepository, times(2)).save(any(RoomParticipant.class)); // 두 명의 참여자 저장 확인
     }
 
     @Test
@@ -160,9 +182,28 @@ class ChatServiceTest {
                 .status(Status.ACTIVE)
                 .build();
 
+        // Member ID 설정
+        try {
+            java.lang.reflect.Field idField = mockMember.getClass().getSuperclass().getDeclaredField("id");
+            idField.setAccessible(true);
+            idField.set(mockMember, 1L);
+        } catch (Exception e) {
+            // ignore
+        }
+
+        Post mockPost = Post.builder()
+                .member(mockMember)
+                .title("테스트 게시글")
+                .description("테스트 내용")
+                .category(Post.Category.PRODUCT)
+                .price(100000)
+                .status(Post.Status.SALE)
+                .build();
+
         ChatRoom existingChatRoom = mock(ChatRoom.class);
 
         when(memberRepository.findByName(userName)).thenReturn(Optional.of(mockMember));
+        when(postRepository.findById(postId)).thenReturn(Optional.of(mockPost)); // Post 모킹 추가
         when(chatRoomRepository.findByPostIdAndMemberId(postId, mockMember.getId()))
                 .thenReturn(Optional.of(existingChatRoom));
 
@@ -173,8 +214,8 @@ class ChatServiceTest {
 
         // verify
         verify(memberRepository, times(1)).findByName(userName);
+        verify(postRepository, times(1)).findById(postId);
         verify(chatRoomRepository, times(1)).findByPostIdAndMemberId(postId, mockMember.getId());
-        verify(postRepository, never()).findById(any());
         verify(chatRoomRepository, never()).save(any());
     }
 
@@ -193,8 +234,16 @@ class ChatServiceTest {
                 .status(Status.ACTIVE)
                 .build();
 
+        // Member ID 설정
+        try {
+            java.lang.reflect.Field idField = mockMember.getClass().getSuperclass().getDeclaredField("id");
+            idField.setAccessible(true);
+            idField.set(mockMember, 1L);
+        } catch (Exception e) {
+            // ignore
+        }
+
         when(memberRepository.findByName(userName)).thenReturn(Optional.of(mockMember));
-        when(chatRoomRepository.findByPostIdAndMemberId(postId, mockMember.getId())).thenReturn(Optional.empty());
         when(postRepository.findById(postId)).thenReturn(Optional.empty());
 
         // when & then
@@ -204,8 +253,8 @@ class ChatServiceTest {
 
         // verify
         verify(memberRepository, times(1)).findByName(userName);
-        verify(chatRoomRepository, times(1)).findByPostIdAndMemberId(postId, mockMember.getId());
         verify(postRepository, times(1)).findById(postId);
+        verify(chatRoomRepository, never()).findByPostIdAndMemberId(any(), any());
         verify(chatRoomRepository, never()).save(any());
     }
 
@@ -226,6 +275,15 @@ class ChatServiceTest {
                 .status(Status.ACTIVE)
                 .build();
 
+        // Member ID 설정
+        try {
+            java.lang.reflect.Field idField = mockMember.getClass().getSuperclass().getDeclaredField("id");
+            idField.setAccessible(true);
+            idField.set(mockMember, 1L);
+        } catch (Exception e) {
+            // ignore
+        }
+
         Post mockPost1 = Post.builder()
                 .member(mockMember)
                 .title("게시글1")
@@ -245,7 +303,23 @@ class ChatServiceTest {
                 .build();
 
         ChatRoom mockChatRoom1 = new ChatRoom(mockPost1, mockMember);
+        // ChatRoom ID 설정을 위해 reflection 사용
+        try {
+            java.lang.reflect.Field idField = mockChatRoom1.getClass().getSuperclass().getDeclaredField("id");
+            idField.setAccessible(true);
+            idField.set(mockChatRoom1, 1L);
+        } catch (Exception e) {
+            // ignore
+        }
+
         ChatRoom mockChatRoom2 = new ChatRoom(mockPost2, mockMember);
+        try {
+            java.lang.reflect.Field idField = mockChatRoom2.getClass().getSuperclass().getDeclaredField("id");
+            idField.setAccessible(true);
+            idField.set(mockChatRoom2, 2L);
+        } catch (Exception e) {
+            // ignore
+        }
 
         Message mockMessage1 = mock(Message.class);
         Message mockMessage2 = mock(Message.class);
@@ -254,8 +328,10 @@ class ChatServiceTest {
         when(memberRepository.findByName(userName)).thenReturn(Optional.of(mockMember));
         when(chatRoomRepository.findByMemberIdOrderByCreatedAtDesc(mockMember.getId()))
                 .thenReturn(Arrays.asList(mockChatRoom1, mockChatRoom2));
-        when(messageRepository.findFirstByChatRoomIdOrderByCreatedAtDesc(anyLong()))
-                .thenReturn(mockMessage1, mockMessage2);
+        when(messageRepository.findFirstByChatRoomIdOrderByCreatedAtDesc(1L))
+                .thenReturn(mockMessage1);
+        when(messageRepository.findFirstByChatRoomIdOrderByCreatedAtDesc(2L))
+                .thenReturn(mockMessage2);
         when(mockMessage1.getContent()).thenReturn("안녕하세요!");
         when(mockMessage2.getContent()).thenReturn("반갑습니다.");
 
@@ -270,7 +346,8 @@ class ChatServiceTest {
         // verify
         verify(memberRepository, times(1)).findByName(userName);
         verify(chatRoomRepository, times(1)).findByMemberIdOrderByCreatedAtDesc(mockMember.getId());
-        verify(messageRepository, times(2)).findFirstByChatRoomIdOrderByCreatedAtDesc(anyLong());
+        verify(messageRepository, times(1)).findFirstByChatRoomIdOrderByCreatedAtDesc(1L);
+        verify(messageRepository, times(1)).findFirstByChatRoomIdOrderByCreatedAtDesc(2L);
     }
 
     @Test
@@ -288,6 +365,15 @@ class ChatServiceTest {
                 .status(Status.ACTIVE)
                 .build();
 
+        // Member ID 설정
+        try {
+            java.lang.reflect.Field idField = mockMember.getClass().getSuperclass().getDeclaredField("id");
+            idField.setAccessible(true);
+            idField.set(mockMember, 1L);
+        } catch (Exception e) {
+            // ignore
+        }
+
         Post mockPost = Post.builder()
                 .member(mockMember)
                 .title("게시글")
@@ -298,12 +384,20 @@ class ChatServiceTest {
                 .build();
 
         ChatRoom mockChatRoom = new ChatRoom(mockPost, mockMember);
+        // ChatRoom ID 설정
+        try {
+            java.lang.reflect.Field idField = mockChatRoom.getClass().getSuperclass().getDeclaredField("id");
+            idField.setAccessible(true);
+            idField.set(mockChatRoom, 1L);
+        } catch (Exception e) {
+            // ignore
+        }
 
         when(mockPrincipal.getName()).thenReturn(userName);
         when(memberRepository.findByName(userName)).thenReturn(Optional.of(mockMember));
         when(chatRoomRepository.findByMemberIdOrderByCreatedAtDesc(mockMember.getId()))
                 .thenReturn(Arrays.asList(mockChatRoom));
-        when(messageRepository.findFirstByChatRoomIdOrderByCreatedAtDesc(anyLong()))
+        when(messageRepository.findFirstByChatRoomIdOrderByCreatedAtDesc(1L))
                 .thenReturn(null);
 
         // when
@@ -316,7 +410,7 @@ class ChatServiceTest {
         // verify
         verify(memberRepository, times(1)).findByName(userName);
         verify(chatRoomRepository, times(1)).findByMemberIdOrderByCreatedAtDesc(mockMember.getId());
-        verify(messageRepository, times(1)).findFirstByChatRoomIdOrderByCreatedAtDesc(anyLong());
+        verify(messageRepository, times(1)).findFirstByChatRoomIdOrderByCreatedAtDesc(1L);
     }
 
     @Test
@@ -413,6 +507,25 @@ class ChatServiceTest {
     void getChatRoomMessages_Success() {
         // given
         Long chatRoomId = 1L;
+        String userName = "testuser";
+        Principal mockPrincipal = mock(Principal.class);
+
+        Member mockRequester = Member.builder()
+                .email("test@test.com")
+                .password("password")
+                .name(userName)
+                .role(Role.USER)
+                .status(Status.ACTIVE)
+                .build();
+
+        // Member ID 설정
+        try {
+            java.lang.reflect.Field idField = mockRequester.getClass().getSuperclass().getDeclaredField("id");
+            idField.setAccessible(true);
+            idField.set(mockRequester, 1L);
+        } catch (Exception e) {
+            // ignore
+        }
 
         Member mockSender = Member.builder()
                 .email("sender@test.com")
@@ -422,11 +535,23 @@ class ChatServiceTest {
                 .status(Status.ACTIVE)
                 .build();
 
+        // Sender ID 설정
+        try {
+            java.lang.reflect.Field idField = mockSender.getClass().getSuperclass().getDeclaredField("id");
+            idField.setAccessible(true);
+            idField.set(mockSender, 2L);
+        } catch (Exception e) {
+            // ignore
+        }
+
         ChatRoom mockChatRoom = mock(ChatRoom.class);
         Message mockMessage1 = mock(Message.class);
         Message mockMessage2 = mock(Message.class);
 
+        when(mockPrincipal.getName()).thenReturn(userName);
+        when(memberRepository.findByName(userName)).thenReturn(Optional.of(mockRequester));
         when(chatRoomRepository.existsById(chatRoomId)).thenReturn(true);
+        when(roomParticipantRepository.existsByChatRoomIdAndMemberIdAndIsActiveTrue(chatRoomId, mockRequester.getId())).thenReturn(true);
         when(messageRepository.findByChatRoomId(chatRoomId))
                 .thenReturn(Arrays.asList(mockMessage1, mockMessage2));
 
@@ -444,16 +569,42 @@ class ChatServiceTest {
         when(mockChatRoom.getId()).thenReturn(chatRoomId);
 
         // when
-        List<MessageDto> result = chatService.getChatRoomMessages(chatRoomId);
+        List<MessageDto> result = chatService.getChatRoomMessages(chatRoomId, mockPrincipal);
 
         // then
         assertThat(result).hasSize(2);
         assertThat(result.get(0).getContent()).isEqualTo("안녕하세요");
         assertThat(result.get(1).getContent()).isEqualTo("반갑습니다");
+        assertThat(result.get(0).getSenderName()).isEqualTo("발신자");
+        assertThat(result.get(1).getSenderName()).isEqualTo("발신자");
 
         // verify
+        verify(memberRepository, times(1)).findByName(userName);
         verify(chatRoomRepository, times(1)).existsById(chatRoomId);
+        verify(roomParticipantRepository, times(1)).existsByChatRoomIdAndMemberIdAndIsActiveTrue(chatRoomId, mockRequester.getId());
         verify(messageRepository, times(1)).findByChatRoomId(chatRoomId);
+    }
+
+    @Test
+    @DisplayName("채팅방 메시지 조회 실패 - 존재하지 않는 사용자")
+    void getChatRoomMessages_Fail_MemberNotFound() {
+        // given
+        Long chatRoomId = 1L;
+        String userName = "nonexistentuser";
+        Principal mockPrincipal = mock(Principal.class);
+
+        when(mockPrincipal.getName()).thenReturn(userName);
+        when(memberRepository.findByName(userName)).thenReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> chatService.getChatRoomMessages(chatRoomId, mockPrincipal))
+                .isInstanceOf(ServiceException.class)
+                .hasMessage("404-3 : 존재하지 않는 사용자입니다.");
+
+        // verify
+        verify(memberRepository, times(1)).findByName(userName);
+        verify(chatRoomRepository, never()).existsById(any());
+        verify(messageRepository, never()).findByChatRoomId(any());
     }
 
     @Test
@@ -461,16 +612,80 @@ class ChatServiceTest {
     void getChatRoomMessages_Fail_ChatRoomNotFound() {
         // given
         Long chatRoomId = 999L;
+        String userName = "testuser";
+        Principal mockPrincipal = mock(Principal.class);
 
+        Member mockRequester = Member.builder()
+                .email("test@test.com")
+                .password("password")
+                .name(userName)
+                .role(Role.USER)
+                .status(Status.ACTIVE)
+                .build();
+
+        // Member ID 설정
+        try {
+            java.lang.reflect.Field idField = mockRequester.getClass().getSuperclass().getDeclaredField("id");
+            idField.setAccessible(true);
+            idField.set(mockRequester, 1L);
+        } catch (Exception e) {
+            // ignore
+        }
+
+        when(mockPrincipal.getName()).thenReturn(userName);
+        when(memberRepository.findByName(userName)).thenReturn(Optional.of(mockRequester));
         when(chatRoomRepository.existsById(chatRoomId)).thenReturn(false);
 
         // when & then
-        assertThatThrownBy(() -> chatService.getChatRoomMessages(chatRoomId))
+        assertThatThrownBy(() -> chatService.getChatRoomMessages(chatRoomId, mockPrincipal))
                 .isInstanceOf(ServiceException.class)
                 .hasMessage("404-4 : 존재하지 않는 채팅방입니다.");
 
         // verify
+        verify(memberRepository, times(1)).findByName(userName);
         verify(chatRoomRepository, times(1)).existsById(chatRoomId);
+        verify(messageRepository, never()).findByChatRoomId(any());
+    }
+
+    @Test
+    @DisplayName("채팅방 메시지 조회 실패 - 권한 없음")
+    void getChatRoomMessages_Fail_NoPermission() {
+        // given
+        Long chatRoomId = 1L;
+        String userName = "testuser";
+        Principal mockPrincipal = mock(Principal.class);
+
+        Member mockRequester = Member.builder()
+                .email("test@test.com")
+                .password("password")
+                .name(userName)
+                .role(Role.USER)
+                .status(Status.ACTIVE)
+                .build();
+
+        // Member ID 설정
+        try {
+            java.lang.reflect.Field idField = mockRequester.getClass().getSuperclass().getDeclaredField("id");
+            idField.setAccessible(true);
+            idField.set(mockRequester, 1L);
+        } catch (Exception e) {
+            // ignore
+        }
+
+        when(mockPrincipal.getName()).thenReturn(userName);
+        when(memberRepository.findByName(userName)).thenReturn(Optional.of(mockRequester));
+        when(chatRoomRepository.existsById(chatRoomId)).thenReturn(true);
+        when(roomParticipantRepository.existsByChatRoomIdAndMemberIdAndIsActiveTrue(chatRoomId, mockRequester.getId())).thenReturn(false);
+
+        // when & then
+        assertThatThrownBy(() -> chatService.getChatRoomMessages(chatRoomId, mockPrincipal))
+                .isInstanceOf(ServiceException.class)
+                .hasMessage("403-1 : 채팅방 참여자만 메시지를 조회할 수 있습니다.");
+
+        // verify
+        verify(memberRepository, times(1)).findByName(userName);
+        verify(chatRoomRepository, times(1)).existsById(chatRoomId);
+        verify(roomParticipantRepository, times(1)).existsByChatRoomIdAndMemberIdAndIsActiveTrue(chatRoomId, mockRequester.getId());
         verify(messageRepository, never()).findByChatRoomId(any());
     }
 }

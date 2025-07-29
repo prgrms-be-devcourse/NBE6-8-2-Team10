@@ -4,8 +4,10 @@ import com.back.domain.chat.chat.dto.ChatRoomDto;
 import com.back.domain.chat.chat.dto.MessageDto;
 import com.back.domain.chat.chat.entity.ChatRoom;
 import com.back.domain.chat.chat.entity.Message;
+import com.back.domain.chat.chat.entity.RoomParticipant;
 import com.back.domain.chat.chat.repository.ChatRoomRepository;
 import com.back.domain.chat.chat.repository.MessageRepository;
+import com.back.domain.chat.chat.repository.RoomParticipantRepository;
 import com.back.domain.member.entity.Member;
 import com.back.domain.member.repository.MemberRepository;
 import com.back.domain.post.entity.Post;
@@ -27,6 +29,7 @@ public class ChatService {
     private final MemberRepository memberRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final PostRepository postRepository;
+    private final RoomParticipantRepository roomParticipantRepository;
 
     public Message saveMessage(MessageDto chatMessage) {
         Member sender = memberRepository.findById(chatMessage.getSenderId())
@@ -41,15 +44,25 @@ public class ChatService {
         return messageRepository.save(message);
     }
 
-    public boolean isParticipant(Long chatRoomId, Long senderId) {
-        return false;
+    public boolean isParticipant(Long chatRoomId, Long memberId) {
+        return roomParticipantRepository.existsByChatRoomIdAndMemberIdAndIsActiveTrue(chatRoomId, memberId);
     }
 
-    public List<MessageDto> getChatRoomMessages(Long chatRoomId) {
+    public List<MessageDto> getChatRoomMessages(Long chatRoomId, Principal principal) {
+        Member member = memberRepository.findByName(principal.getName())
+                .orElseThrow(() -> new ServiceException("404-3", "존재하지 않는 사용자입니다."));
+        Long requesterId = member.getId();
+
         // 채팅방 존재 확인
         if( !chatRoomRepository.existsById(chatRoomId)) {
             throw new ServiceException("404-4", "존재하지 않는 채팅방입니다.");
         }
+
+        // 권한 체크 추가
+        if(!isParticipant(chatRoomId, requesterId)) {
+            throw new ServiceException("403-1", "채팅방 참여자만 메시지를 조회할 수 있습니다.");
+        }
+
 
         // 메시지 조회 (시간순 정렬)
         List<Message> messages = messageRepository.findByChatRoomId(chatRoomId);
@@ -74,22 +87,26 @@ public class ChatService {
         }
 
         // 사용자명으로 Member 엔티티 조회
-        Member member = memberRepository.findByName(userName)
+        Member requester = memberRepository.findByName(userName)
                 .orElseThrow(() -> new ServiceException("404-3", "존재하지 않는 사용자입니다."));
-
-
-        // 이미 해당 게시글에 해당 사용자가 만든 채팅방이 있는지 확인
-        if (chatRoomRepository.findByPostIdAndMemberId(postId, member.getId()).isPresent()) {
-
-            throw new ServiceException("409-1", "이미 생성된 채팅방이 있습니다.");
-        }
 
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ServiceException("404-1", "존재하지 않는 게시글입니다."));
 
-        // Member 엔티티를 사용해서 채팅방 생성
-        ChatRoom chatRoom = new ChatRoom(post, member);
-        chatRoomRepository.save(chatRoom);
+        Member postAuthor = post.getMember();
+
+        // 이미 해당 게시글에 해당 사용자가 만든 채팅방이 있는지 확인
+        if (chatRoomRepository.findByPostIdAndMemberId(postId, requester.getId()).isPresent()) {
+
+            throw new ServiceException("409-1", "이미 생성된 채팅방이 있습니다.");
+        }
+
+        // 채팅방 생성
+        ChatRoom chatRoom = new ChatRoom(post, requester);
+        ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
+
+        roomParticipantRepository.save(new RoomParticipant(savedChatRoom, requester));
+        roomParticipantRepository.save(new RoomParticipant(savedChatRoom, postAuthor));
     }
 
     public List<ChatRoomDto> getMyChatRooms(Principal principal) {
@@ -126,5 +143,11 @@ public class ChatService {
                 .orElseThrow(() -> new ServiceException("404-4", "존재하지 않는 채팅방입니다."));
 
         chatRoomRepository.delete(chatRoom);
+    }
+
+    public Member findByName(String name) {
+        Member member = memberRepository.findByName(name)
+                .orElseThrow(() -> new ServiceException("404-3", "존재하지 않는 사용자입니다."));
+        return member;
     }
 }

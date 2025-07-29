@@ -25,4 +25,10 @@ public class RoomParticipant extends BaseEntity {
     private LocalDateTime leftAt;
 
     private boolean isActive;
+
+    public RoomParticipant(ChatRoom chatRoom, Member member) {
+        this.chatRoom = chatRoom;
+        this.member = member;
+        this.isActive = true;
+    }
 }
