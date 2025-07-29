@@ -1,12 +1,15 @@
 package com.back.domain.post.service;
 
-import com.back.domain.post.dto.PostRequestDTO;
 import com.back.domain.post.dto.PostDetailDTO;
+import com.back.domain.post.dto.PostListDTO;
+import com.back.domain.post.dto.PostRequestDTO;
 import com.back.domain.post.entity.Post;
 import com.back.domain.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -30,5 +33,13 @@ public class PostService {
 
         Post saved = postRepository.save(post);
         return new PostDetailDTO(saved, false);
+    }
+
+    @Transactional(readOnly = true)
+    public List<PostListDTO> getTop10PopularPosts() {
+        return postRepository.findTop10ByOrderByFavoriteCntDesc()
+                .stream()
+                .map(PostListDTO::new)
+                .toList();
     }
 }
