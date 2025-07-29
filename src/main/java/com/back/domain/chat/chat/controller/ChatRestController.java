@@ -20,7 +20,7 @@ public class ChatRestController {
 
     @GetMapping("/rooms/{chatRoomId}/messages")
     public RsData<List<MessageDto>> getChatRoomMessages(@PathVariable Long chatRoomId, Principal principal) {
-        Member member = chatService.findByName(principal.getName());
+        Member member = chatService.findByEmail(principal.getName());
 
         List<MessageDto> messageDtos = chatService.getChatRoomMessages(chatRoomId, principal);
 
@@ -28,10 +28,10 @@ public class ChatRestController {
     }
 
     @PostMapping("/rooms/{postId}")
-    public RsData<Void> createChatRoom(@PathVariable Long postId, Principal principal){
-        chatService.createChatRoom(postId, principal.getName());
+    public RsData<Long> createChatRoom(@PathVariable Long postId, Principal principal){
+        Long chatRoomId = chatService.createChatRoom(postId, principal.getName());
 
-        return new RsData<>("200-1", "채팅방 생성 성공");
+        return new RsData<>("200-1", "채팅방 생성 성공", chatRoomId);
     }
 
     @GetMapping("/rooms/my")

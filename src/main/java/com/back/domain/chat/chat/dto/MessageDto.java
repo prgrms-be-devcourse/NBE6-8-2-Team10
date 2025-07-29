@@ -12,6 +12,7 @@ public class MessageDto {
     private Long chatRoomId;
 
     private String senderName;
+    private String senderEmail;
     private String content;
 
     public MessageDto() {
@@ -48,11 +49,12 @@ public class MessageDto {
         MessageDto messageDto = (MessageDto) o;
         return Objects.equals(senderId, messageDto.senderId) &&
                 Objects.equals(content, messageDto.content) &&
-                Objects.equals(chatRoomId, messageDto.chatRoomId);
+                Objects.equals(chatRoomId, messageDto.chatRoomId) &&
+                Objects.equals(senderEmail, messageDto.senderEmail);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(senderId, content, chatRoomId);
+        return Objects.hash(senderId, content, chatRoomId, senderEmail);
     }
 }
