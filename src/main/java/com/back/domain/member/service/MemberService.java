@@ -42,13 +42,11 @@ public class MemberService {
     // 회원 탈퇴 (상태 변경)
     @Transactional
     public void deleteAccount(Member member) {
-
-        // 1. 회원 정보가 존재하는지 확인
-        if (member == null) {
-            throw new NoSuchElementException("회원 정보가 존재하지 않습니다.");
-        }
+        // 1. 반드시 영속 상태로 다시 가져오기
+        Member foundMember = memberRepository.findById(member.getId())
+                .orElseThrow(() -> new NoSuchElementException("회원 정보가 존재하지 않습니다."));
 
         // 2. 회원 탈퇴 처리
-        member.delete();
+        foundMember.delete();
     }
 }

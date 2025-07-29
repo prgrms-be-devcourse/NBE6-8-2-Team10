@@ -17,8 +17,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -54,7 +54,7 @@ public class AuthController {
         try {
             MemberLoginResponse response = authService.login(request);
             return ResponseEntity.ok(new RsData<>(ResultCode.LOGIN_SUCCESS, "로그인 성공", response));
-        } catch (BadCredentialsException e) {
+        } catch (AuthenticationException e) {
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
                     .body(new RsData<>(ResultCode.INVALID_CREDENTIALS, "이메일 또는 비밀번호가 잘못되었습니다."));

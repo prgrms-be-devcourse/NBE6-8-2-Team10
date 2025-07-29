@@ -346,4 +346,29 @@ public class AuthControllerTest {
                 .andExpect(jsonPath("$.data.accessToken").exists())
                 .andExpect(jsonPath("$.data.refreshToken").exists());
     }
+
+    @Test
+    @DisplayName("탈퇴한 회원 로그인 시도 → 실패")
+    void login_deleted_user_should_fail() throws Exception {
+        // given
+        String email = "deleted@user.com";
+        String password = "user1234!";
+        Member deletedMember = Member.builder()
+                .email(email)
+                .password(passwordEncoder.encode(password))
+                .name("탈퇴자")
+                .status(Status.DELETED)
+                .build();
+        memberRepository.save(deletedMember);
+
+        MemberLoginRequest request = new MemberLoginRequest(email, password);
+
+        // when
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnauthorized()) // 401
+                .andExpect(jsonPath("$.resultCode").value("401-3"))
+                .andExpect(jsonPath("$.msg").value("이메일 또는 비밀번호가 잘못되었습니다."));
+    }
 }

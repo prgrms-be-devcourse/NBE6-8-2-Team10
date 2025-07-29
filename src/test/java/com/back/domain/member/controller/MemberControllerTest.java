@@ -40,7 +40,6 @@ public class MemberControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    // 테스트 데이터 삽입용 의존성 (예시)
     @Autowired
     private MemberRepository memberRepository;
 
@@ -79,7 +78,7 @@ public class MemberControllerTest {
                         .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.resultCode").value("200-6"))
-                .andExpect(jsonPath("$.message").value("회원 탈퇴 성공했습니다."));
+                .andExpect(jsonPath("$.msg").value("회원 탈퇴 성공했습니다."));
 
         // then - 실제 DB 상태 확인
         Member deletedMember = memberRepository.findByEmail(email).orElseThrow();
