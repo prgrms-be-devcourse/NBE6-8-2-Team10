@@ -15,3 +15,7 @@ spring:
   # JPA 설정
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
+
+# 로컬 업로드(개발용)
+file:
+  upload-dir: C:/Temp/uploads
