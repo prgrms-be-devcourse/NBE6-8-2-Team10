@@ -42,9 +42,17 @@
 
     <div class="input-group">
         <h3>사용자 정보</h3>
-        <input type="text" id="senderName" placeholder="Your name" value="사용자2">
-        <input type="text" id="senderEmail" placeholder="Your email" value="user2@user.com">
-        <input type="text" id="jwtToken" placeholder="JWT Token" value="eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyMkB1c2VyLmNvbSIsImlkIjo0LCJyb2xlIjoiVVNFUiIsImlhdCI6MTc1Mzc2OTk5NiwiZXhwIjoxNzUzNzcxNzk2fQ.UEmZ7n-r1VstflEaGpdi2fDxKjywJzrN83fkCwh9fkI" style="width: 400px;">
+        <div style="margin-bottom: 10px; padding: 10px; background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px;">
+            <strong>💡 테스트 가이드:</strong><br>
+            • <strong>탭 1 (게시글 작성자)</strong>: 이름=사용자1, 이메일=user1@user.com<br>
+            • <strong>탭 2 (채팅 신청자)</strong>: 이름=사용자2, 이메일=user2@user.com<br>
+            각 탭에서 해당 사용자 정보로 수정한 후 테스트하세요!<br><br>
+            <strong>📝 사용자2 정보:</strong><br>
+            JWT Token: <code style="font-size: 12px;">eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyMkB1c2VyLmNvbSIsImlkIjo0LCJyb2xlIjoiVVNFUiIsImlhdCI6MTc1Mzc2OTk5NiwiZXhwIjoxNzUzNzcxNzk2fQ.UEmZ7n-r1VstflEaGpdi2fDxKjywJzrN83fkCwh9fkI</code>
+        </div>
+        <input type="text" id="senderName" placeholder="Your name" value="사용자1">
+        <input type="text" id="senderEmail" placeholder="Your email" value="user1@user.com">
+        <input type="text" id="jwtToken" placeholder="JWT Token" value="eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyMUB1c2VyLmNvbSIsImlkIjozLCJyb2xlIjoiVVNFUiIsImlhdCI6MTc1Mzc2OTk5NiwiZXhwIjoxNzUzNzcxNzk2fQ.example_token_for_user1" style="width: 400px;">
     </div>
 
     <div class="input-group">
@@ -128,6 +136,8 @@
         });
     }
 
+    var currentSubscription = null; // 현재 구독 정보 저장
+
     async function createAndJoinChatRoom() {
         var postId = document.getElementById('postId').value;
         var senderName = document.getElementById('senderName').value;
@@ -147,9 +157,11 @@
         document.getElementById('createBtn').disabled = true;
 
         try {
-            console.log('Creating chat room for post:', postId);
+            console.log('=== 채팅방 생성/참여 시작 ===');
+            console.log('게시글 ID:', postId);
+            console.log('사용자 이메일:', senderEmail);
 
-            // 채팅방 생성 API 호출
+            // 채팅방 생성/참여 API 호출
             const response = await fetch(`/api/chat/rooms/${postId}`, {
                 method: 'POST',
                 headers: {
@@ -160,18 +172,35 @@
 
             if (response.ok) {
                 const result = await response.json();
-                console.log('Chat room creation response:', result);
+                console.log('서버 응답:', result);
 
-                currentChatRoomId = result.data;
+                const receivedChatRoomId = result.data;
+
+                // 이미 같은 채팅방에 참여 중인 경우 중복 구독 방지
+                if (currentChatRoomId === receivedChatRoomId && currentSubscription) {
+                    console.log('⚠️ 이미 같은 채팅방에 참여 중입니다.');
+                    addSystemMessage('이미 채팅방 ' + receivedChatRoomId + '에 참여 중입니다.');
+                    return;
+                }
+
+                // 기존 구독이 있으면 해제
+                if (currentSubscription) {
+                    console.log('기존 구독 해제:', currentChatRoomId);
+                    currentSubscription.unsubscribe();
+                    currentSubscription = null;
+                }
+
+                // 새 채팅방 정보 설정
+                currentChatRoomId = receivedChatRoomId;
                 updateCurrentChatRoom(currentChatRoomId);
 
                 // WebSocket 구독 설정
-                const subscriptionPath = '/user/queue/chat/' + currentChatRoomId;
+                const subscriptionPath = '/topic/chat/' + currentChatRoomId;
                 console.log('=== WebSocket 구독 설정 ===');
                 console.log('구독 경로:', subscriptionPath);
-                console.log('현재 사용자 이메일:', senderEmail);
+                console.log('채팅방 ID:', currentChatRoomId);
 
-                stompClient.subscribe(subscriptionPath, function (chatMessage) {
+                currentSubscription = stompClient.subscribe(subscriptionPath, function (chatMessage) {
                     console.log('=== WebSocket 메시지 수신 ===');
                     console.log('Raw message:', chatMessage);
                     console.log('Message body:', chatMessage.body);
@@ -185,21 +214,34 @@
                     }
                 });
 
-                console.log('WebSocket 구독 완료');
-                addSystemMessage('채팅방 생성 및 참여 성공! (ID: ' + currentChatRoomId + ')');
-                addSystemMessage('WebSocket 구독 경로: ' + subscriptionPath);
+                console.log('✅ WebSocket 구독 완료');
+
+                // 성공 메시지 표시
+                if (currentChatRoomId) {
+                    addSystemMessage('✅ 채팅방 참여 성공! (ID: ' + currentChatRoomId + ')');
+                    addSystemMessage('📡 WebSocket 구독 완료: ' + subscriptionPath);
+                    addSystemMessage('💬 이제 실시간 채팅이 가능합니다!');
+                }
+
+                // UI 활성화
                 document.getElementById('sendBtn').disabled = false;
                 document.getElementById('historyBtn').disabled = false;
 
+                // 채팅 기록 자동 로드
+                setTimeout(() => {
+                    addSystemMessage('📋 채팅 기록을 불러옵니다...');
+                    loadChatHistory();
+                }, 500);
+
             } else {
                 const errorText = await response.text();
-                console.error('Failed to create chat room:', errorText);
-                addErrorMessage('채팅방 생성 실패: ' + errorText);
+                console.error('채팅방 생성/참여 실패:', errorText);
+                addErrorMessage('채팅방 생성/참여 실패: ' + errorText);
             }
 
         } catch (error) {
-            console.error('Error creating chat room:', error);
-            addErrorMessage('채팅방 생성 중 오류 발생: ' + error.message);
+            console.error('채팅방 생성/참여 중 오류:', error);
+            addErrorMessage('채팅방 생성/참여 중 오류 발생: ' + error.message);
         } finally {
             document.getElementById('createBtn').disabled = false;
         }
@@ -393,19 +435,26 @@
         var currentEmail = document.getElementById('senderEmail').value;
         var isMyMessage = isMyMessageSent || (message.senderEmail === currentEmail);
 
+        // 중복 메시지 방지 로직 개선
+        if (!isMyMessageSent && message.senderEmail === currentEmail) {
+            // 내가 보낸 메시지가 서버에서 다시 오는 경우, 최근 5개 메시지 중에서 중복 체크
+            var existingMessages = Array.from(messages.children).slice(-5);
+            var isDuplicate = existingMessages.some(msg => {
+                return msg.textContent &&
+                       msg.textContent.includes(message.content) &&
+                       msg.classList.contains('my-message') &&
+                       !msg.textContent.includes('(기록)'); // 기록 메시지는 제외
+            });
+
+            if (isDuplicate) {
+                console.log('중복 메시지 방지:', message.content);
+                return; // 중복 메시지는 표시하지 않음
+            }
+        }
+
         if (isMyMessage) {
             messageElement.className += ' my-message';
             messageElement.innerHTML = `<strong>나:</strong> ${message.content}`;
-
-            // 내가 보낸 메시지가 서버에서 다시 오는 경우 중복 방지
-            if (!isMyMessageSent && message.senderEmail === currentEmail) {
-                // 이미 화면에 표시된 내 메시지와 중복되는지 확인
-                var existingMessages = messages.children;
-                var lastMessage = existingMessages[existingMessages.length - 1];
-                if (lastMessage && lastMessage.textContent.includes(message.content)) {
-                    return; // 중복 메시지는 표시하지 않음
-                }
-            }
         } else {
             messageElement.className += ' other-message';
             messageElement.innerHTML = `<strong>${message.senderName}:</strong> ${message.content}`;
@@ -413,6 +462,13 @@
 
         messages.appendChild(messageElement);
         messages.scrollTop = messages.scrollHeight;
+
+        console.log('메시지 표시 완료:', {
+            content: message.content,
+            sender: message.senderName || message.senderEmail,
+            isMyMessage: isMyMessage,
+            isMyMessageSent: isMyMessageSent
+        });
     }
 
     function showErrorMessage(error) {
@@ -445,6 +501,40 @@
     function handleKeyPress(event) {
         if (event.key === 'Enter') {
             sendMessage();
+        }
+    }
+
+    function switchToUser1() {
+        document.getElementById('senderName').value = '사용자1';
+        document.getElementById('senderEmail').value = 'user1@user.com';
+        document.getElementById('jwtToken').value = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyMUB1c2VyLmNvbSIsImlkIjozLCJyb2xlIjoiVVNFUiIsImlhdCI6MTc1Mzc2OTk5NiwiZXhwIjoxNzUzNzcxNzk2fQ.example_token_for_user1';
+        addSystemMessage('🔄 사용자1 (게시글 작성자)로 전환되었습니다.');
+
+        // WebSocket 재연결
+        if (stompClient && isConnected) {
+            addSystemMessage('🔌 WebSocket 재연결 중...');
+            stompClient.disconnect(() => {
+                setTimeout(() => {
+                    connect();
+                }, 1000);
+            });
+        }
+    }
+
+    function switchToUser2() {
+        document.getElementById('senderName').value = '사용자2';
+        document.getElementById('senderEmail').value = 'user2@user.com';
+        document.getElementById('jwtToken').value = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyMkB1c2VyLmNvbSIsImlkIjo0LCJyb2xlIjoiVVNFUiIsImlhdCI6MTc1Mzc2OTk5NiwiZXhwIjoxNzUzNzcxNzk2fQ.UEmZ7n-r1VstflEaGpdi2fDxKjywJzrN83fkCwh9fkI';
+        addSystemMessage('🔄 사용자2 (채팅 신청자)로 전환되었습니다.');
+
+        // WebSocket 재연결
+        if (stompClient && isConnected) {
+            addSystemMessage('🔌 WebSocket 재연결 중...');
+            stompClient.disconnect(() => {
+                setTimeout(() => {
+                    connect();
+                }, 1000);
+            });
         }
     }
 

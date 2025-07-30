@@ -3,91 +3,79 @@ package com.back.domain.chat.chat.controller;
 import com.back.domain.chat.chat.dto.MessageDto;
 import com.back.domain.chat.chat.entity.Message;
 import com.back.domain.chat.chat.service.ChatService;
+import com.back.domain.chat.redis.service.RedisMessageService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
-import java.util.List;
-
+@Slf4j
 @Controller
 @RequiredArgsConstructor
 public class ChatWebSocketController {
 
     private final ChatService chatService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final RedisMessageService redisMessageService; // Redis 서비스 추가
 
     @MessageMapping("/sendMessage")
-    public void sendMessage(MessageDto chatMessage) {  // void로 변경, @SendTo 제거
-        System.out.println("=== WebSocket 메시지 수신 ===");
-        System.out.println("sender: " + chatMessage.getSender());
-        System.out.println("senderEmail: " + chatMessage.getSenderEmail());
-        System.out.println("content: " + chatMessage.getContent());
-        System.out.println("senderId: " + chatMessage.getSenderId());
-        System.out.println("chatRoomId: " + chatMessage.getChatRoomId());
-        System.out.println("=================");
+    public void sendMessage(MessageDto chatMessage) {
+        log.info("=== WebSocket 메시지 수신 ===");
+        log.info("sender: {}", chatMessage.getSender());
+        log.info("senderEmail: {}", chatMessage.getSenderEmail());
+        log.info("content: {}", chatMessage.getContent());
+        log.info("senderId: {}", chatMessage.getSenderId());
+        log.info("chatRoomId: {}", chatMessage.getChatRoomId());
+        log.info("=================");
 
         try {
-            // 메시지 저장
+            // 1. 메시지 저장 (기존과 동일)
             Message savedMessage = chatService.saveMessage(chatMessage);
-            System.out.println("메시지 저장 완료: " + savedMessage.getId());
+            log.info("메시지 저장 완료: {}", savedMessage.getId());
 
-            // 채팅방 참여자들 조회
-            List<String> participants = chatService.getParticipants(chatMessage.getChatRoomId());
+            // 2. 권한 체크: 발신자가 해당 채팅방 참여자인지 확인
+            boolean isParticipant = chatService.isParticipant(chatMessage.getChatRoomId(), chatMessage.getSenderId());
+            if (!isParticipant) {
+                log.warn("권한 없음: 사용자 {}는 채팅방 {}의 참여자가 아닙니다",
+                        chatMessage.getSenderId(), chatMessage.getChatRoomId());
 
-            System.out.println("=== 참여자 조회 결과 ===");
-            System.out.println("채팅방 ID: " + chatMessage.getChatRoomId());
-            System.out.println("참여자 수: " + participants.size());
-            for (String participant : participants) {
-                System.out.println("참여자 이메일: " + participant);
-            }
-            System.out.println("======================");
-
-            // 각 참여자에게 개별 전송
-            for (String userEmail : participants) {
-                String destination = "/queue/chat/" + chatMessage.getChatRoomId();
-                System.out.println("메시지 전송 시도:");
-                System.out.println("  대상 사용자: " + userEmail);
-                System.out.println("  목적지: " + destination);
-                System.out.println("  메시지 내용: " + chatMessage.getContent());
-
-                try {
-                    messagingTemplate.convertAndSendToUser(
-                            userEmail,
-                            destination,
-                            chatMessage
-                    );
-                    System.out.println("  ✅ 전송 성공: " + userEmail);
-                } catch (Exception sendError) {
-                    System.out.println("  ❌ 전송 실패: " + userEmail + ", 오류: " + sendError.getMessage());
-                    sendError.printStackTrace();
-                }
+                // 에러 메시지 전송
+                sendErrorMessage(chatMessage.getSenderEmail(), "채팅방 참여자만 메시지를 보낼 수 있습니다.");
+                return;
             }
 
-            if (participants.isEmpty()) {
-                System.out.println("⚠️ 경고: 참여자가 없어서 메시지가 전송되지 않았습니다!");
-            } else {
-                System.out.println("메시지 전송 완료. 총 " + participants.size() + "명에게 전송됨");
-            }
+            // 3. Redis pub/sub을 통해 메시지 발행 (새로운 방식!)
+            log.info("=== Redis pub/sub으로 메시지 발행 시작 ===");
+            redisMessageService.publishMessage(chatMessage);
+            log.info("✅ Redis 메시지 발행 완료! 모든 서버 인스턴스에 전달됨");
 
         } catch (Exception e) {
-            System.out.println("❌ 메시지 처리 중 에러 발생: " + e.getMessage());
-            e.printStackTrace();
+            log.error("❌ 메시지 처리 중 에러 발생: {}", e.getMessage(), e);
 
             // 에러 메시지는 발신자에게만 전송
-            MessageDto errorMessage = new MessageDto();
-            errorMessage.setSender("System");
-            errorMessage.setContent("메시지 전송에 실패했습니다: " + e.getMessage());
+            sendErrorMessage(chatMessage.getSenderEmail(), "메시지 전송에 실패했습니다: " + e.getMessage());
+        }
+    }
 
-            try {
-                messagingTemplate.convertAndSendToUser(
-                        chatMessage.getSenderEmail(),
-                        "/queue/error",
-                        errorMessage
-                );
-            } catch (Exception errorSendFail) {
-                System.out.println("에러 메시지 전송도 실패: " + errorSendFail.getMessage());
-            }
+    /**
+     * 에러 메시지를 특정 사용자에게 전송
+     */
+    private void sendErrorMessage(String userEmail, String errorMessage) {
+        try {
+            MessageDto errorMsg = new MessageDto();
+            errorMsg.setSender("System");
+            errorMsg.setContent(errorMessage);
+
+            messagingTemplate.convertAndSendToUser(
+                    userEmail,
+                    "/queue/error",
+                    errorMsg
+            );
+            log.info("에러 메시지 전송 완료: {} -> {}", userEmail, errorMessage);
+
+        } catch (Exception errorSendFail) {
+            log.error("에러 메시지 전송도 실패: {}", errorSendFail.getMessage(), errorSendFail);
         }
     }
 }

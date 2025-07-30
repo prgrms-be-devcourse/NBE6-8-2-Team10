@@ -84,7 +84,7 @@ public class ChatService {
                 .collect(Collectors.toList());
     }
     @Transactional
-    public Long createChatRoom(Long postId, String userEmail) {
+    public synchronized Long createChatRoom(Long postId, String userEmail) {
         if(userEmail == null || userEmail.isEmpty()) {
             throw new ServiceException("400-1", "로그인 하셔야 합니다.");
         }
@@ -98,33 +98,39 @@ public class ChatService {
 
         Member postAuthor = post.getMember();
 
-        // 본인 게시글에는 채팅방을 만들 수 없도록 제한
-        if (requester.getId().equals(postAuthor.getId())) {
-            throw new ServiceException("400-2", "본인의 게시글에는 채팅할 수 없습니다.");
+//        // 본인 게시글에는 채팅방을 만들 수 없도록 제한
+//        if (requester.getId().equals(postAuthor.getId())) {
+//            throw new ServiceException("400-2", "본인의 게시글에는 채팅할 수 없습니다.");
+//        }
+
+        System.out.println("=== 채팅방 생성 시작 ===");
+        System.out.println("요청자: " + requester.getEmail() + " (ID: " + requester.getId() + ")");
+        System.out.println("게시글 작성자: " + postAuthor.getEmail() + " (ID: " + postAuthor.getId() + ")");
+        System.out.println("게시글 ID: " + postId);
+
+        // 전체 멤버 확인
+        System.out.println("=== 전체 멤버 확인 ===");
+        List<Member> allMembers = memberRepository.findAll();
+        for (Member m : allMembers) {
+            System.out.println("멤버: " + m.getEmail() + " (ID: " + m.getId() + ")");
         }
 
-        // requester가 참여한 해당 게시글의 채팅방들 찾기
-        List<RoomParticipant> requesterParticipations = roomParticipantRepository
-            .findByChatRoomPostIdAndMemberIdAndIsActiveTrue(postId, requester.getId());
-        
-        // 각 채팅방에서 postAuthor도 참여하고 있고, 참여자가 2명인지 확인
-        for (RoomParticipant participation : requesterParticipations) {
-            ChatRoom chatRoom = participation.getChatRoom();
-            
-            // 이 채팅방의 참여자 수와 postAuthor 참여 여부 확인
-            List<RoomParticipant> participants = roomParticipantRepository
-                .findByChatRoomIdAndIsActiveTrue(chatRoom.getId());
-                
-            if (participants.size() == 2) {
-                boolean hasPostAuthor = participants.stream()
-                    .anyMatch(p -> p.getMember().getId().equals(postAuthor.getId()));
-                    
-                if (hasPostAuthor) {
-                    // 1대1 채팅방 발견!
-                    return chatRoom.getId();
-                }
-            }
+        // 채팅방 4번 참여자 확인
+        System.out.println("=== 채팅방 4번 참여자 확인 ===");
+        List<RoomParticipant> participants4 = roomParticipantRepository.findByChatRoomIdAndIsActiveTrue(4L);
+        for (RoomParticipant p : participants4) {
+            System.out.println("참여자: " + p.getMember().getEmail() + " (ID: " + p.getMember().getId() + ")");
         }
+
+        // 더 정확한 채팅방 찾기 로직 (양방향 검색)
+        Long existingChatRoomId = findExistingChatRoom(postId, requester.getId(), postAuthor.getId());
+
+        if (existingChatRoomId != null) {
+            System.out.println("✅ 기존 채팅방 발견: " + existingChatRoomId);
+            return existingChatRoomId;
+        }
+
+        System.out.println("🆕 새 채팅방 생성 시작");
 
         // 기존 1대1 채팅방이 없다면 새로 생성
         ChatRoom chatRoom = new ChatRoom(post, requester);
@@ -134,7 +140,65 @@ public class ChatService {
         roomParticipantRepository.save(new RoomParticipant(savedChatRoom, requester));
         roomParticipantRepository.save(new RoomParticipant(savedChatRoom, postAuthor));
 
+        System.out.println("✅ 새 채팅방 생성 완료: " + savedChatRoom.getId());
         return savedChatRoom.getId();
+    }
+
+    /**
+     * 기존 1대1 채팅방을 찾는 메서드 (양방향 검색)
+     */
+    private Long findExistingChatRoom(Long postId, Long requesterId, Long postAuthorId) {
+        // 요청자가 참여한 해당 게시글의 채팅방들 찾기
+        List<RoomParticipant> requesterParticipations = roomParticipantRepository
+            .findByChatRoomPostIdAndMemberIdAndIsActiveTrue(postId, requesterId);
+
+        System.out.println("요청자가 참여한 채팅방 수: " + requesterParticipations.size());
+
+        // 각 채팅방에서 postAuthor도 참여하고 있고, 참여자가 2명인지 확인
+        for (RoomParticipant participation : requesterParticipations) {
+            ChatRoom chatRoom = participation.getChatRoom();
+
+            // 이 채팅방의 참여자 수와 postAuthor 참여 여부 확인
+            List<RoomParticipant> participants = roomParticipantRepository
+                .findByChatRoomIdAndIsActiveTrue(chatRoom.getId());
+
+            System.out.println("채팅방 " + chatRoom.getId() + " 참여자 수: " + participants.size());
+
+            if (participants.size() == 2) {
+                boolean hasPostAuthor = participants.stream()
+                    .anyMatch(p -> p.getMember().getId().equals(postAuthorId));
+
+                if (hasPostAuthor) {
+                    System.out.println("🎯 1대1 채팅방 발견: " + chatRoom.getId());
+                    return chatRoom.getId();
+                }
+            }
+        }
+
+        // 반대로 postAuthor가 참여한 채팅방에서도 검색
+        List<RoomParticipant> authorParticipations = roomParticipantRepository
+            .findByChatRoomPostIdAndMemberIdAndIsActiveTrue(postId, postAuthorId);
+
+        System.out.println("게시글 작성자가 참여한 채팅방 수: " + authorParticipations.size());
+
+        for (RoomParticipant participation : authorParticipations) {
+            ChatRoom chatRoom = participation.getChatRoom();
+
+            List<RoomParticipant> participants = roomParticipantRepository
+                .findByChatRoomIdAndIsActiveTrue(chatRoom.getId());
+
+            if (participants.size() == 2) {
+                boolean hasRequester = participants.stream()
+                    .anyMatch(p -> p.getMember().getId().equals(requesterId));
+
+                if (hasRequester) {
+                    System.out.println("🎯 1대1 채팅방 발견 (역방향): " + chatRoom.getId());
+                    return chatRoom.getId();
+                }
+            }
+        }
+
+        return null; // 기존 채팅방 없음
     }
     @Transactional
     public List<ChatRoomDto> getMyChatRooms(Principal principal) {
