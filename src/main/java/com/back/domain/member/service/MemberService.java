@@ -2,6 +2,7 @@ package com.back.domain.member.service;
 
 
 import com.back.domain.auth.dto.request.MemberSignupRequest;
+import com.back.domain.member.dto.response.MemberMyPageResponse;
 import com.back.domain.member.entity.Member;
 import com.back.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -48,5 +49,15 @@ public class MemberService {
 
         // 2. 회원 탈퇴 처리
         foundMember.delete();
+    }
+
+    // 회원 마이페이지 조회
+    public MemberMyPageResponse findMyPage(Member member) {
+        // 1. 반드시 영속 상태로 다시 가져오기
+        Member foundMember = memberRepository.findById(member.getId())
+                .orElseThrow(() -> new NoSuchElementException("회원 정보가 존재하지 않습니다."));
+
+        // 2. 마이페이지 정보 반환
+        return MemberMyPageResponse.fromEntity(foundMember);
     }
 }

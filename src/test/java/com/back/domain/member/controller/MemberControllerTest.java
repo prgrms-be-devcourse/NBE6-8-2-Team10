@@ -15,6 +15,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -24,8 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -52,7 +52,7 @@ public class MemberControllerTest {
     private FileStorageService fileStorageService;
 
     @Test
-    @DisplayName("회원 탈퇴 성공 - 로그인 후 DELETE /api/members/me 호출")
+    @DisplayName("회원 탈퇴 성공")
     void delete_account_success() throws Exception {
         // given - 테스트용 회원 저장
         String email = "testUser1@user.com";
@@ -90,4 +90,33 @@ public class MemberControllerTest {
         assertEquals(Status.DELETED, deletedMember.getStatus());
     }
 
+    @Test
+    @DisplayName("마이페이지 조회 성공")
+    @WithUserDetails("user1@user.com")
+    void myPage_success() throws Exception {
+        // when & then
+        mockMvc.perform(get("/api/members/me"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.email").value("user1@user.com"))
+                .andExpect(jsonPath("$.data.name").value("유저1"));
+    }
+
+    @Test
+    @DisplayName("마이페이지 조회 실패 - 탈퇴한 회원")
+    void myPage_fail_deleted_user() throws Exception {
+        // given
+        if (memberRepository.findByEmail("deleted@user.com").isEmpty()) {
+            Member member = Member.builder()
+                    .email("deleted@user.com")
+                    .password(passwordEncoder.encode("user1234!"))
+                    .name("탈퇴자")
+                    .status(Status.DELETED)
+                    .build();
+            memberRepository.save(member);
+        }
+
+        // when & then
+        mockMvc.perform(get("/api/members/me"))
+                .andExpect(status().isForbidden());
+    }
 }

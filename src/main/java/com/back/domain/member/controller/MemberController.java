@@ -1,5 +1,6 @@
 package com.back.domain.member.controller;
 
+import com.back.domain.member.dto.response.MemberMyPageResponse;
 import com.back.domain.member.service.MemberService;
 import com.back.global.rsData.ResultCode;
 import com.back.global.rsData.RsData;
@@ -10,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -35,6 +37,26 @@ public class MemberController {
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
                     .body(new RsData<>(ResultCode.MEMBER_NOT_FOUND, e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new RsData<>(ResultCode.SERVER_ERROR, "서버 오류가 발생했습니다."));
+        }
+    }
+
+    // 회원 정보 조회 API (마이페이지)
+    @GetMapping("/me")
+    @Operation(summary = "마이페이지 조회", description = "현재 로그인한 사용자의 상세 정보를 반환합니다.")
+    public ResponseEntity<RsData<MemberMyPageResponse>> getMyPageInfo(@AuthenticationPrincipal MemberDetails memberDetails) {
+        try {
+            MemberMyPageResponse response = memberService.findMyPage(memberDetails.getMember());
+            return ResponseEntity.ok(
+                    new RsData<>(ResultCode.GET_ME_SUCCESS, "마이페이지 조회 성공", response)
+            );
+        } catch (NoSuchElementException e) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(new RsData<>(ResultCode.MEMBER_NOT_FOUND, "사용자를 찾을 수 없습니다."));
         } catch (Exception e) {
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
