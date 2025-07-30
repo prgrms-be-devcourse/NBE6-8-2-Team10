@@ -77,6 +77,15 @@ public class TradeService {
         return new TradeDetailDto(trade);
     }
 
+    //관리자 거래 상세 조회
+    @Transactional(readOnly = true)
+    public TradeDetailDto getTradeDetailAsAdmin(Long tradeId) {
+        Trade trade = tradeRepository.findById(tradeId)
+                .orElseThrow(() -> new ServiceException("404-1", "거래를 찾을 수 없습니다."));
+
+        return new TradeDetailDto(trade);
+    }
+
     //최근 거래 조회
     @Transactional(readOnly = true)
     public Trade findLatest() {

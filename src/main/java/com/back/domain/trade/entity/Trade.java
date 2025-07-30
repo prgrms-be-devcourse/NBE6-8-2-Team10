@@ -1,15 +1,17 @@
 package com.back.domain.trade.entity;
 
-import  com.back.domain.member.entity.Member;
+import com.back.domain.member.entity.Member;
 import com.back.domain.post.entity.Post;
 import com.back.global.jpa.entity.BaseEntity;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
 @NoArgsConstructor
+@Builder
 public class Trade extends BaseEntity {
 
     @OneToOne(fetch = FetchType.LAZY)
