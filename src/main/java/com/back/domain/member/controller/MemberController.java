@@ -2,6 +2,7 @@ package com.back.domain.member.controller;
 
 import com.back.domain.member.dto.request.MemberUpdateRequest;
 import com.back.domain.member.dto.response.MemberMyPageResponse;
+import com.back.domain.member.dto.response.OtherMemberInfoResponse;
 import com.back.domain.member.service.MemberService;
 import com.back.global.rsData.ResultCode;
 import com.back.global.rsData.RsData;
@@ -82,6 +83,22 @@ public class MemberController {
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new RsData<>(ResultCode.SERVER_ERROR, "서버 오류가 발생했습니다."));
+        }
+    }
+
+    // 사용자 프로필 조회 API
+    @GetMapping("/{id}")
+    @Operation(summary = "사용자 프로필 조회", description = "간단한 사용자 프로필 정보를 제공합니다.")
+    public ResponseEntity<RsData<OtherMemberInfoResponse>> getOtherMemberProfile(@PathVariable Long id) {
+        try {
+            OtherMemberInfoResponse response = memberService.getMemberProfileById(id);
+            return ResponseEntity.ok(
+                    new RsData<>(ResultCode.GET_OTHER_SUCCESS, "프로필 조회 성공", response)
+            );
+        } catch (NoSuchElementException e) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(new RsData<>(ResultCode.MEMBER_NOT_FOUND, e.getMessage()));
         }
     }
 

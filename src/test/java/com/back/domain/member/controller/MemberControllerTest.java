@@ -208,4 +208,40 @@ public class MemberControllerTest {
                 .andExpect(jsonPath("$.resultCode").value("400-4"))
                 .andExpect(jsonPath("$.msg").value("현재 비밀번호를 입력해주세요."));
     }
+
+    @Test
+    @DisplayName("타 회원 프로필 조회 성공")
+    @WithUserDetails(value = "user1@user.com")
+    void getOtherMemberProfile_success() throws Exception {
+        // given
+        Member otherMember = memberRepository.save(Member.builder()
+                .email("other@user.com")
+                .password(passwordEncoder.encode("user1234!"))
+                .name("다른유저")
+                .profileUrl("https://example.com/profile.jpg")
+                .status(Status.ACTIVE)
+                .build());
+
+        // when & then
+        mockMvc.perform(get("/api/members/" + otherMember.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.resultCode").value("200-8"))
+                .andExpect(jsonPath("$.msg").value("프로필 조회 성공"))
+                .andExpect(jsonPath("$.data.name").value("다른유저"))
+                .andExpect(jsonPath("$.data.profileUrl").value("https://example.com/profile.jpg"));
+    }
+
+    @Test
+    @DisplayName("타 회원 프로필 조회 실패 - 존재하지 않는 ID")
+    @WithUserDetails(value = "user1@user.com")
+    void getOtherMemberProfile_fail_notFound() throws Exception {
+        // given
+        Long nonExistentId = 99999L;
+
+        // when & then
+        mockMvc.perform(get("/api/members/" + nonExistentId))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.resultCode").value("404-2"))
+                .andExpect(jsonPath("$.msg").value("해당 사용자가 존재하지 않습니다."));
+    }
 }

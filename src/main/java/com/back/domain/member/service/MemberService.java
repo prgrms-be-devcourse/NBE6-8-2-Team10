@@ -4,6 +4,7 @@ package com.back.domain.member.service;
 import com.back.domain.auth.dto.request.MemberSignupRequest;
 import com.back.domain.member.dto.request.MemberUpdateRequest;
 import com.back.domain.member.dto.response.MemberMyPageResponse;
+import com.back.domain.member.dto.response.OtherMemberInfoResponse;
 import com.back.domain.member.entity.Member;
 import com.back.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -91,6 +92,13 @@ public class MemberService {
 
             foundMember.updatePassword(passwordEncoder.encode(request.newPassword()));
         }
+    }
+
+    // 사용자 프로필 조회
+    public OtherMemberInfoResponse getMemberProfileById(Long id) {
+        Member member = memberRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("해당 사용자가 존재하지 않습니다."));
+        return OtherMemberInfoResponse.fromEntity(member);
     }
 
 }

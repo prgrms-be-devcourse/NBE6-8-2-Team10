@@ -10,6 +10,7 @@ public enum ResultCode {
     REISSUE_SUCCESS("200-5", 200, "AccessToken 재발급 성공"),
     MEMBER_DELETE_SUCCESS("200-6", 200, "회원 탈퇴 성공"),
     MEMBER_UPDATE_SUCCESS("200-7", 200, "회원 정보 수정 성공"),
+    GET_OTHER_SUCCESS("200-8", 200, "사용자 프로필 정보 조회 성공"),
 
     // ----------------------- [400: 잘못된 요청] -----------------------
     INVALID_REQUEST("400-1", 400, "잘못된 요청입니다."),
