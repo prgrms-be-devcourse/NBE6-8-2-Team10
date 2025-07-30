@@ -84,7 +84,6 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
-
         for (String prefix : EXCLUDED_PATH_PREFIXES) {
             if (path.startsWith(prefix)) {
                 return true;
