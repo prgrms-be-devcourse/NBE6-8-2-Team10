@@ -9,11 +9,13 @@ public enum ResultCode {
     LOGOUT_SUCCESS("200-4", 200, "로그아웃 성공"),
     REISSUE_SUCCESS("200-5", 200, "AccessToken 재발급 성공"),
     MEMBER_DELETE_SUCCESS("200-6", 200, "회원 탈퇴 성공"),
+    MEMBER_UPDATE_SUCCESS("200-7", 200, "회원 정보 수정 성공"),
 
     // ----------------------- [400: 잘못된 요청] -----------------------
     INVALID_REQUEST("400-1", 400, "잘못된 요청입니다."),
     MISSING_FIELDS("400-2", 400, "필수 필드가 누락되었습니다."),
     INVALID_EMAIL_FORMAT("400-3", 400, "이메일 형식이 잘못되었습니다."),
+    MEMBER_UPDATE_FAIL("400-4", 400, "회원 정보 수정에 실패했습니다."),
 
     // ----------------------- [401: 인증 오류] -----------------------
     UNAUTHORIZED("401-1", 401, "인증 정보가 없습니다."),

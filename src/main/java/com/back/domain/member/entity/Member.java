@@ -81,4 +81,18 @@ public class Member extends BaseEntity {
         this.deletedAt = LocalDateTime.now();
     }
 
+
+    // 회원 정보 수정
+    public void updateName(String newName) {
+        this.name = newName;
+    }
+
+    public void updatePassword(String encodedNewPassword) {
+        this.password = encodedNewPassword;
+    }
+
+    public void updateProfileUrl(String newProfileUrl) {
+        this.profileUrl = newProfileUrl;
+    }
+
 }

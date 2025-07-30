@@ -1,5 +1,6 @@
 package com.back.domain.member.controller;
 
+import com.back.domain.member.dto.request.MemberUpdateRequest;
 import com.back.domain.member.dto.response.MemberMyPageResponse;
 import com.back.domain.member.service.MemberService;
 import com.back.global.rsData.ResultCode;
@@ -10,10 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.NoSuchElementException;
 
@@ -63,4 +61,28 @@ public class MemberController {
                     .body(new RsData<>(ResultCode.SERVER_ERROR, "서버 오류가 발생했습니다."));
         }
     }
+
+    // 회원 정보 수정 API
+    @PatchMapping("/me")
+    @Operation(summary = "회원 정보 수정", description = "현재 로그인한 사용자의 이름 또는 비밀번호를 수정합니다.")
+    public ResponseEntity<RsData<String>> updateMemberInfo(
+            @AuthenticationPrincipal MemberDetails memberDetails,
+            @RequestBody MemberUpdateRequest request
+    ) {
+        try {
+            memberService.updateMemberInfo(memberDetails.getMember(), request);
+            return ResponseEntity.ok(
+                    new RsData<>(ResultCode.MEMBER_UPDATE_SUCCESS, "회원 정보 수정에 성공했습니다.")
+            );
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(new RsData<>(ResultCode.MEMBER_UPDATE_FAIL, e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new RsData<>(ResultCode.SERVER_ERROR, "서버 오류가 발생했습니다."));
+        }
+    }
+
 }
