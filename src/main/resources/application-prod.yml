@@ -17,7 +17,10 @@ spring:
         show_sql: true
 
   # 객체 스토리지(GCS, S3 등)
-  config:
-    storage:
-      bucket-name: bucket-name
-      credential-path: classpath:service-account-key.json
+  cloud:
+    gcp:
+      project-id: ${GCP_PROJECT_ID}
+      credentials:
+        location: ${GCP_CREDENTIALS_LOCATION}
+      storage:
+        bucket-name: ${GCP_BUCKET_NAME}

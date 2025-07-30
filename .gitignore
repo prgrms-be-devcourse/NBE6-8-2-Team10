@@ -41,3 +41,6 @@ db_dev.mv.db
 db_dev.trace.db
 src/main/resources/*.json
 .DS_Store
+
+### GCP Key File ###
+arctic-app-467400-f3-5f91160b658e.json
