@@ -44,3 +44,5 @@ src/main/resources/*.json
 
 ### GCP Key File ###
 arctic-app-467400-f3-5f91160b658e.json
+.env
+*.env
