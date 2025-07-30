@@ -58,7 +58,7 @@ class AdmTradeControllerTest {
     @DisplayName("1. 전체 거래 목록 전체 조회 - 관리자")
     void t1() throws Exception {
         // 1. 기대값 준비: DB에서 모든 거래 조회
-        Pageable pageable = PageRequest.of(0, 10);
+        Pageable pageable = PageRequest.of(0, 20);
         Page<TradeDto> expectedPage = tradeService.getAllTrades(pageable);
         List<TradeDto> trades = expectedPage.getContent();
 
@@ -137,9 +137,23 @@ class AdmTradeControllerTest {
     }
 
     @Test
-    @WithUserDetails("user1@user.com")
-    @DisplayName("4. 거래 상세 조회 - 일반 사용자")
+    @WithUserDetails("admin@admin.com")
+    @DisplayName("4. 거래 상세 조회 - 존재하지 않는 거래")
     void t4() throws Exception {
+        Long nonExistentTradeId = 999L;
+
+        mvc.perform(get("/api/admin/trades/" + nonExistentTradeId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.resultCode").value("404-1"))
+                .andExpect(jsonPath("$.msg").value("거래를 찾을 수 없습니다."));
+    }
+
+    @Test
+    @WithUserDetails("user1@user.com")
+    @DisplayName("5. 거래 상세 조회 - 일반 사용자")
+    void t5() throws Exception {
         Long tradeId = 1L;
 
         mvc.perform(get("/api/admin/trades/" + tradeId)
