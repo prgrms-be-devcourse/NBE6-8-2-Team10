@@ -171,7 +171,7 @@ public class FilesControllerTest {
         );
 
         // filesService.deleteFile 호출 시 응답 설정
-        given(filesService.deleteFile(postId, fileId, 1L)).willReturn(rsData); // memberId는 1L로 고정됨
+        given(filesService.deleteFile(postId, fileId)).willReturn(rsData); // memberId는 1L로 고정됨
 
         mockMvc.perform(delete("/api/posts/{postId}/files/{fileId}", postId, fileId))
                 .andExpect(status().isOk())

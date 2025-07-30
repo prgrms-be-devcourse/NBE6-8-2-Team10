@@ -27,6 +27,9 @@ logging:
     org.hibernate.orm.jdbc.extract: TRACE
     org.springframework.transaction.interceptor: TRACE
     com.back: DEBUG
+    org.springframework.security: DEBUG # Security 관련 상세 디버그 로그
+    io.jsonwebtoken: DEBUG  # JWT관련 상세 디버그 로그
+    org.hibernate.SQL: DEBUG # JPA SQL쿼리 디버그 로그
 
 jwt:
   secret: "01234567890123456789012345678901"  # 최소 32자(256비트) 이상 (아직 환경변수 처리 하지 않았음)

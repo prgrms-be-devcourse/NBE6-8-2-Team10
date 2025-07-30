@@ -2,7 +2,6 @@ package com.back.domain.files.files.controller;
 
 import com.back.domain.files.files.dto.FileUploadResponseDto;
 import com.back.domain.files.files.service.FilesService;
-import com.back.domain.member.service.MemberService;
 import com.back.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -22,7 +21,6 @@ import java.util.List;
 public class FilesController {
 
     private final FilesService filesService;
-    private final MemberService memberService;
 
     @Operation(summary = "파일 업로드", description = "게시글에 파일을 업로드 합니다")
     @PostMapping(value = "/{postId}/files", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -47,9 +45,7 @@ public class FilesController {
     public RsData<Void> deleteFile(
             @PathVariable @Positive long postId,
             @PathVariable @Positive long fileId
-
     ) {
-        Long memberId = 1L; // 테스트
-        return filesService.deleteFile(postId, fileId, memberId);
+        return filesService.deleteFile(postId, fileId);
     }
 }

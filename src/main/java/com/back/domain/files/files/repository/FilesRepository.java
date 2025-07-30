@@ -11,5 +11,4 @@ import java.util.Optional;
 public interface FilesRepository extends JpaRepository<Files, Long> {
     List<Files> findByPostIdOrderBySortOrderAsc(Long postId);
     Optional<Files> findById(Long fileId);
-    void delete(Files file);
 }
