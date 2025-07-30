@@ -1,10 +1,13 @@
 package com.back.domain.admin.controller;
 
+import com.back.domain.admin.dto.request.AdminUpdateMemberRequest;
 import com.back.domain.admin.dto.response.AdminMemberResponse;
 import com.back.domain.admin.service.AdminService;
 import com.back.domain.member.dto.response.MemberInfoResponse;
+import com.back.global.rsData.ResultCode;
 import com.back.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -12,10 +15,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -46,5 +46,18 @@ public class AdminController {
     public ResponseEntity<RsData<AdminMemberResponse>> getMemberDetail(@PathVariable Long memberId) {
         AdminMemberResponse response = adminService.getMemberDetail(memberId);
         return ResponseEntity.ok(new RsData<>("200-2", "회원 상세 조회 성공", response));
+    }
+
+    // 회원 정보 수정 API
+    @PatchMapping("/members/{memberId}")
+    @Operation(summary = "회원 정보 수정 (관리자)", description = "관리자가 회원 정보를 수정합니다.")
+    public ResponseEntity<RsData<String>> updateMemberByAdmin(
+            @PathVariable Long memberId,
+            @RequestBody @Valid AdminUpdateMemberRequest request
+    ) {
+        adminService.updateMemberInfo(memberId, request);
+        return ResponseEntity.ok(
+                new RsData<>(ResultCode.MEMBER_UPDATE_SUCCESS, "회원 정보 수정 성공")
+        );
     }
 }

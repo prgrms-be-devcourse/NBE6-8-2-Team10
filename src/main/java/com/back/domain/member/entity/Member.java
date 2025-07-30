@@ -82,7 +82,7 @@ public class Member extends BaseEntity {
     }
 
 
-    // 회원 정보 수정
+    // 회원 정보 수정 - 시작
     public void updateName(String newName) {
         this.name = newName;
     }
@@ -94,5 +94,10 @@ public class Member extends BaseEntity {
     public void updateProfileUrl(String newProfileUrl) {
         this.profileUrl = newProfileUrl;
     }
+
+    public void changeStatus(Status newStatus) {
+        this.status = newStatus;
+    }
+    // 회원 정보 수정 - 끝
 
 }
