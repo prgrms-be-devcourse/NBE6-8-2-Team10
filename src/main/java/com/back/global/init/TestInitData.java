@@ -2,6 +2,7 @@ package com.back.global.init;
 
 import com.back.domain.auth.dto.request.MemberSignupRequest;
 import com.back.domain.member.entity.Member;
+import com.back.domain.member.entity.Role;
 import com.back.domain.member.repository.MemberRepository;
 import com.back.domain.member.service.MemberService;
 import com.back.domain.post.entity.Post;
@@ -14,6 +15,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -29,6 +31,7 @@ public class TestInitData {
     private final PostRepository postRepository;
     private final MemberService memberService;
     private final MemberRepository memberRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Bean
     ApplicationRunner testInitDataApplicationRunner() {
@@ -38,10 +41,21 @@ public class TestInitData {
         };
     }
 
-    // 유저 데이터 삽입
+    // 유저&관리자 데이터 삽입
     @Transactional
     public void work1() {
-        safeSignup("admin@admin.com", "admin1234!", "관리자");
+        // 관리자 계정 직접 생성
+        if (memberRepository.findByEmail("admin@admin.com").isEmpty()) {
+            Member admin = Member.builder()
+                    .email("admin@admin.com")
+                    .password(passwordEncoder.encode("admin1234!"))
+                    .name("관리자")
+                    .role(Role.ADMIN)
+                    .build();
+            memberRepository.save(admin);
+        }
+
+        // 일반 유저 계정 생성
         safeSignup("user1@user.com", "user1234!", "유저1");
         safeSignup("user2@user.com", "user1234!", "유저2");
         safeSignup("user3@user.com", "user1234!", "유저3");
