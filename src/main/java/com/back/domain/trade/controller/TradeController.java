@@ -1,6 +1,7 @@
 package com.back.domain.trade.controller;
 
 import com.back.domain.member.entity.Member;
+import com.back.domain.trade.dto.TradeDetailDto;
 import com.back.domain.trade.dto.TradeDto;
 import com.back.domain.trade.dto.TradePageResponse;
 import com.back.domain.trade.entity.Trade;
@@ -55,5 +56,11 @@ public class TradeController {
                 "거래 목록 조회 성공",
                 TradePageResponse.of(trades)
         );
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "거래 상세 조회")
+    public RsData<TradeDetailDto> getTradeDetail(@PathVariable @Positive Long id) {
+        return new RsData<>("200-1", "거래 상세 조회 성공", tradeService.getTradeDetail(id, rq.getMember()));
     }
 }

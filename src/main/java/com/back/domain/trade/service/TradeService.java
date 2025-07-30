@@ -4,6 +4,7 @@ import com.back.domain.member.entity.Member;
 import com.back.domain.member.repository.MemberRepository;
 import com.back.domain.post.entity.Post;
 import com.back.domain.post.repository.PostRepository;
+import com.back.domain.trade.dto.TradeDetailDto;
 import com.back.domain.trade.dto.TradeDto;
 import com.back.domain.trade.entity.Trade;
 import com.back.domain.trade.entity.TradeStatus;
@@ -24,6 +25,7 @@ public class TradeService {
     private final MemberRepository memberRepository;
     private final TradeRepository tradeRepository;
 
+    //거래 생성
     @Transactional
     public Trade createTrade(Long postId, Long buyerId) {
         Post post = postRepository.findById(postId)
@@ -49,16 +51,33 @@ public class TradeService {
         return trade;
     }
 
+    //관리자 거래 전체 조회
     @Transactional(readOnly = true)
     public Page<TradeDto> getAllTrades(Pageable pageable) {
         return tradeRepository.findAll(pageable).map(TradeDto::new);
     }
 
+    //본인 거래 전체 조회
     @Transactional(readOnly = true)
     public Page<TradeDto> getMyTrades(Member member, Pageable pageable) {
         return tradeRepository.findByBuyerOrSeller(member, member, pageable).map(TradeDto::new);
     }
 
+    //거래 상세 조회
+    @Transactional(readOnly = true)
+    public TradeDetailDto getTradeDetail(Long id, Member member) {
+        Trade trade = tradeRepository.findById(id)
+                .orElseThrow(() -> new ServiceException("404-1", "거래를 찾을 수 없습니다."));
+
+        if (!trade.getBuyer().getId().equals(member.getId()) &&
+                !trade.getSeller().getId().equals(member.getId())) {
+            throw new ServiceException("403-1", "본인의 거래만 조회할 수 있습니다.");
+        }
+
+        return new TradeDetailDto(trade);
+    }
+
+    //최근 거래 조회
     @Transactional(readOnly = true)
     public Trade findLatest() {
         return tradeRepository.findFirstByOrderByCreatedAtDesc()
