@@ -18,6 +18,12 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -31,6 +37,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
+                // CORS 설정
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // 인증 없이 접근 가능한 경로들
@@ -67,6 +75,35 @@ public class SecurityConfig {
 
 
         return http.build();
+    }
+
+    // CORS 설정
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        
+        // 허용할 오리진 설정 (개발 환경)
+        configuration.setAllowedOriginPatterns(List.of("http://localhost:3000"));
+        
+        // 허용할 HTTP 메서드 설정
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        
+        // 허용할 헤더 설정
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        
+        // 인증 정보 포함 허용
+        configuration.setAllowCredentials(true);
+        
+        // 노출할 헤더 설정
+        configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Type"));
+        
+        // 프리플라이트 요청 캐시 시간 설정 (1시간)
+        configuration.setMaxAge(3600L);
+        
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        
+        return source;
     }
 
     @Bean
