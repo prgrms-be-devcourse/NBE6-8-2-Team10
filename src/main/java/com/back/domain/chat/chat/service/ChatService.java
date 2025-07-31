@@ -126,7 +126,7 @@ public class ChatService {
         roomParticipantRepository.save(new RoomParticipant(savedChatRoom, requester));
         roomParticipantRepository.save(new RoomParticipant(savedChatRoom, postAuthor));
 
-        log.debug("✅ 새 채팅방 생성 완료: " + savedChatRoom.getId());
+        log.debug("새 채팅방 생성 완료: " + savedChatRoom.getId());
         return savedChatRoom.getId();
     }
 
@@ -171,20 +171,26 @@ public class ChatService {
         Member member = memberRepository.findByEmail(principal.getName())
                 .orElseThrow(() -> new ServiceException("404-3", "존재하지 않는 사용자입니다."));
 
-        // Member ID로 채팅방 조회
-        List<ChatRoom> chatRooms = chatRoomRepository.findByMemberIdOrderByCreatedAtDesc(member.getId());
 
-        return chatRooms.stream()
-                .map(chatRoom -> {
+        // 개선
+        List<RoomParticipant> participations = roomParticipantRepository
+                .findByMemberIdAndIsActiveTrueOrderByCreatedAtDesc(member.getId());
+
+
+        // RoomParticipant에서 ChatRoom 추출 및 DTO 변환
+        return participations.stream()
+                .map(participation -> {
+                    ChatRoom chatRoom = participation.getChatRoom();
+
                     // 마지막 메시지 조회
                     Message lastMessage = messageRepository.findFirstByChatRoomIdOrderByCreatedAtDesc(chatRoom.getId());
                     String lastContent = (lastMessage != null) ? lastMessage.getContent() : "대화를 시작해보세요.";
 
                     return new ChatRoomDto(
-                        chatRoom.getId(),
-                        chatRoom.getRoomName(),
-                        chatRoom.getPost().getId(),
-                        lastContent
+                            chatRoom.getId(),
+                            chatRoom.getRoomName(),
+                            chatRoom.getPost().getId(),
+                            lastContent
                     );
                 })
                 .toList();

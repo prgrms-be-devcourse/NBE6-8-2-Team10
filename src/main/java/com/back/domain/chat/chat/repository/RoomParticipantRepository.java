@@ -11,4 +11,6 @@ public interface RoomParticipantRepository extends JpaRepository<RoomParticipant
     boolean existsByChatRoomIdAndMemberIdAndIsActiveTrue(Long chatRoomId, Long memberId);
     List<RoomParticipant> findByChatRoomIdAndIsActiveTrue(Long chatRoomId);
     List<RoomParticipant> findByChatRoomPostIdAndMemberIdAndIsActiveTrue(Long postId, Long memberId);
+
+    List<RoomParticipant> findByMemberIdAndIsActiveTrueOrderByCreatedAtDesc(Long id);
 }

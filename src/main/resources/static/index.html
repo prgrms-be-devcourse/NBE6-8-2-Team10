@@ -441,9 +441,9 @@
             var existingMessages = Array.from(messages.children).slice(-5);
             var isDuplicate = existingMessages.some(msg => {
                 return msg.textContent &&
-                       msg.textContent.includes(message.content) &&
-                       msg.classList.contains('my-message') &&
-                       !msg.textContent.includes('(기록)'); // 기록 메시지는 제외
+                    msg.textContent.includes(message.content) &&
+                    msg.classList.contains('my-message') &&
+                    !msg.textContent.includes('(기록)'); // 기록 메시지는 제외
             });
 
             if (isDuplicate) {
