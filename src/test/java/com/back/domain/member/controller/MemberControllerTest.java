@@ -26,8 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -127,13 +126,12 @@ public class MemberControllerTest {
     }
 
     @Test
-    @DisplayName("회원 정보 수정 성공 - 이름과 프로필 URL 수정")
+    @DisplayName("회원 정보 수정 성공 - 이름만 수정") // 테스트명 변경
     @WithUserDetails(value = "user1@user.com")
-    void updateMember_success_nameAndProfileUrl() throws Exception {
+    void updateMember_success_nameOnly() throws Exception { // 메서드명 변경
         MemberUpdateRequest request = new MemberUpdateRequest(
                 "이름개명",
-                "testUrl.com/profile.jpg",
-                null,
+                null, // profileUrl 필드 제거에 따른 변경
                 null
         );
 
@@ -146,15 +144,37 @@ public class MemberControllerTest {
 
         Member updated = memberRepository.findByEmail("user1@user.com").orElseThrow();
         assertEquals("이름개명", updated.getName());
-        assertEquals("testUrl.com/profile.jpg", updated.getProfileUrl());
+        assertNull(updated.getProfileUrl()); // profileUrl이 변경되지 않았음을 확인
     }
+
+//    @Test
+//    @DisplayName("회원 정보 수정 성공 - 이름과 프로필 URL 수정")
+//    @WithUserDetails(value = "user1@user.com")
+//    void updateMember_success_nameAndProfileUrl() throws Exception {
+//        MemberUpdateRequest request = new MemberUpdateRequest(
+//                "이름개명",
+//                "testUrl.com/profile.jpg",
+//                null,
+//                null
+//        );
+//
+//        mockMvc.perform(patch("/api/members/me")
+//                        .contentType(MediaType.APPLICATION_JSON)
+//                        .content(objectMapper.writeValueAsString(request)))
+//                .andExpect(status().isOk())
+//                .andExpect(jsonPath("$.resultCode").value("200-7"))
+//                .andExpect(jsonPath("$.msg").value("회원 정보 수정에 성공했습니다."));
+//
+//        Member updated = memberRepository.findByEmail("user1@user.com").orElseThrow();
+//        assertEquals("이름개명", updated.getName());
+//        assertEquals("testUrl.com/profile.jpg", updated.getProfileUrl());
+//    }
 
     @Test
     @DisplayName("회원 정보 수정 성공 - 비밀번호 수정")
     @WithUserDetails(value = "user1@user.com")
     void updateMember_success_passwordOnly() throws Exception {
         MemberUpdateRequest request = new MemberUpdateRequest(
-                null,
                 null,
                 "user1234!",
                 "newpass123!"
@@ -177,7 +197,6 @@ public class MemberControllerTest {
     void updateMember_fail_wrongCurrentPassword() throws Exception {
         MemberUpdateRequest request = new MemberUpdateRequest(
                 null,
-                null,
                 "wrongPassword!",
                 "newPassword123!"
         );
@@ -195,7 +214,6 @@ public class MemberControllerTest {
     @WithUserDetails(value = "user1@user.com")
     void updateMember_fail_missingCurrentPassword() throws Exception {
         MemberUpdateRequest request = new MemberUpdateRequest(
-                null,
                 null,
                 null,
                 "newPassword123!"

@@ -6,11 +6,11 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 
 @Slf4j
@@ -18,83 +18,70 @@ import java.util.UUID;
 @Profile("dev")
 public class LocalFileStorageService implements FileStorageService {
 
-    // === 로컬 저장 경로 ===
     @Value("${file.upload-dir}")
     private String uploadDir;
 
-    // 첨부파일 저장
+    @Value(("${file.upload.max-size:10485760}"))
+    private long maxFileSize;
+
     @Override
     public String storeFile(MultipartFile file, String subFolder) {
-        // 파일 크기 제한 (예: 10MB)
-        if (file.getSize() > 10 * 1024 * 1024) {
-            throw new RuntimeException("파일 크기가 너무 큽니다. 최대 10MB까지 업로드 가능합니다.");
+        if (file.getSize() > maxFileSize) {
+            throw new RuntimeException("파일 크기가 너무 큽니다. 최대 " + (maxFileSize / (1024 * 1024)) + "MB까지 업로드 가능합니다.");
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null || !isAllowedFileType(contentType)) {
+            throw new RuntimeException("허용되지 않는 파일 형식입니다.");
         }
 
         try {
-            // 디렉토리 생성
-            Path uploadPath = Paths.get(uploadDir, subFolder);
-            if(!Files.exists(uploadPath)){
-                Files.createDirectories(uploadPath);
-            }
+            Path uploadPath = Paths.get(uploadDir, subFolder).toAbsolutePath().normalize();
+            Files.createDirectories(uploadPath);
 
-            // 저장된 파일명 생성
-            String originalFileName = file.getOriginalFilename();
-            String extension = getExtension(originalFileName);
+            String originalFilename = file.getOriginalFilename();
+            String fileExtension = getExtension(originalFilename);
+            String uniqueFileName = UUID.randomUUID().toString() + fileExtension; // 고유한 파일명 생성
+            Path targetLocation = uploadPath.resolve(uniqueFileName);
 
-            // 파일명 생성
-            String fileName = "file_" + System.currentTimeMillis() + "_" +
-                    UUID.randomUUID().toString().substring(0, 8) + extension;
+            Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
 
-            Path filePath = uploadPath.resolve(fileName);
-            // 파일명 중복 시 재시도
-            int counter = 1;
-            while(Files.exists(filePath)){
-                String newFileName = "file_" + System.currentTimeMillis() + "_" +
-                        UUID.randomUUID().toString().substring(0, 8) + "_" + (counter++) + extension;
-                filePath = uploadPath.resolve(newFileName);
-            }
-
-            file.transferTo(filePath.toFile());
-
-            // 접근 가능한 URL 반환
-            return "file:///" + filePath.toAbsolutePath().toString().replace("\\", "/");
-
+            return "/files/" + subFolder + "/" + uniqueFileName; // 로컬 접근 URL 반환
         } catch (IOException e) {
-            log.error("파일 저장 실패", e);
-            throw new RuntimeException("파일 저장 중 오류가 발생했습니다.");
+            throw new RuntimeException("로컬 파일 시스템에 파일 저장 실패: " + e.getMessage(), e);
         }
     }
 
-    // 파일 삭제
+    @Override
     public void deletePhysicalFile(String fileUrl) {
-        try {
-            if (fileUrl == null || !fileUrl.startsWith("file:///")) {
-                log.warn("로컬 파일 삭제: 유효하지 않는 URL 형식입니다." + fileUrl);
-                return;
-            }
+        if (fileUrl == null || fileUrl.isEmpty()) {
+            return;
+        }
 
-            String localPath = java.net.URLDecoder.decode(fileUrl.replace("file:///", ""), "UTF-8");
-            File file = new File(localPath);
-            if (file.exists()) {
-                if (!file.delete()) {
-                    log.warn("파일 삭제 실패: " + localPath);
-                } else {
-                    log.info("로컬 파일 삭제 성공: " + localPath);
-                }
+        try {
+            String relativePath = fileUrl.substring("/files/".length());
+            Path filePath = Paths.get(uploadDir, relativePath).toAbsolutePath().normalize();
+            if (Files.exists(filePath)) {
+                Files.delete(filePath);
             } else {
-                log.info("로컬 파일이 존재하지 않아 삭제할 수 없습니다: " + localPath);
+                throw new RuntimeException("로컬 파일 시스템에서 파일을 찾을 수 없어 삭제 실패: " + fileUrl);
             }
-        } catch (Exception e) {
-            log.error("파일 삭제 중 오류 발생", e);
+        } catch (IOException e) {
+            throw new RuntimeException("로컬 파일 시스템에서 파일 삭제 실패: " + e.getMessage(), e);
         }
     }
 
-    // 파일 확장자 추출
     private String getExtension(String fileName) {
         if (fileName == null || fileName.isEmpty()) {
             return "";
         }
         int dotIndex = fileName.lastIndexOf(".");
         return dotIndex != -1 ? fileName.substring(dotIndex) : "";
+    }
+
+    private boolean isAllowedFileType(String contentType) {
+        return contentType.startsWith("image/") ||
+                contentType.equals("application/pdf") ||
+                contentType.startsWith("text/");
     }
 }

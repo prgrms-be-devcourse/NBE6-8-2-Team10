@@ -2,6 +2,7 @@ package com.back.domain.member.service;
 
 
 import com.back.domain.auth.dto.request.MemberSignupRequest;
+import com.back.domain.files.files.service.FileStorageService;
 import com.back.domain.member.dto.request.MemberUpdateRequest;
 import com.back.domain.member.dto.response.MemberMyPageResponse;
 import com.back.domain.member.dto.response.OtherMemberInfoResponse;
@@ -12,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.NoSuchElementException;
 
@@ -22,6 +24,7 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
+    private final FileStorageService fileStorageService;
 
 
     // 회원 가입
@@ -51,6 +54,7 @@ public class MemberService {
 
         // 2. 회원 탈퇴 처리
         foundMember.delete();
+        memberRepository.save(foundMember);
     }
 
     // 회원 마이페이지 조회
@@ -75,10 +79,10 @@ public class MemberService {
             foundMember.updateName(request.name());
         }
 
-        // 3. 프로필 URL 변경
-        if (request.profileUrl() != null && !request.profileUrl().isBlank()) {
-            foundMember.updateProfileUrl(request.profileUrl());
-        }
+//        // 3. 프로필 URL 변경
+//        if (request.profileUrl() != null && !request.profileUrl().isBlank()) {
+//            foundMember.updateProfileUrl(request.profileUrl());
+//        }
 
         // 4. 비밀번호 변경 요청이 있을 경우만 현재 비밀번호 확인
         if (request.newPassword() != null && !request.newPassword().isBlank()) {
@@ -92,6 +96,7 @@ public class MemberService {
 
             foundMember.updatePassword(passwordEncoder.encode(request.newPassword()));
         }
+        memberRepository.save(foundMember);
     }
 
     // 사용자 프로필 조회
@@ -101,4 +106,63 @@ public class MemberService {
         return OtherMemberInfoResponse.fromEntity(member);
     }
 
+
+    // 프로필 이미지 등록 및 업데이트
+    @Transactional
+    public String uploadProfileImage(Long memberId, MultipartFile file) {
+        // file이 null이거나 비어있는 경우 예외 처리
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("업로드할 파일이 없습니다.");
+        }
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new NoSuchElementException("회원을 찾을 수 없습니다."));
+
+        // 기존 프로필 이미지가 있다면 삭제
+        String oldProfileUrl = member.getProfileUrl();
+        if (oldProfileUrl != null && !oldProfileUrl.isEmpty()) {
+            try {
+                // 이전 프로필 이미지 삭제 시, 전체 URL을 넘겨야 함 (FileStorageService의 deletePhysicalFile 구현에 따라)
+                fileStorageService.deletePhysicalFile(oldProfileUrl);
+            } catch (Exception e) {
+                log.warn("기존 프로필 이미지 삭제 실패: {}", oldProfileUrl, e);
+            }
+        }
+
+        try {
+            // MemberService에서 파일을 저장할 때, 'profile/{memberId}'를 하위 폴더로 지정
+            String newProfileUrl = fileStorageService.storeFile(file, "profile/" + memberId); // 수정된 부분
+            member.updateProfileUrl(newProfileUrl);
+            memberRepository.save(member);
+            return newProfileUrl;
+        } catch (Exception e) {
+            throw new RuntimeException("프로필 이미지 업로드에 실패했습니다.", e);
+        }
+    }
+
+    // 프로필 이미지 삭제
+    @Transactional
+    public void deleteProfileImage(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new NoSuchElementException("회원을 찾을 수 없습니다."));
+
+        if (member.getProfileUrl() == null || member.getProfileUrl().isEmpty()) {
+            throw new IllegalArgumentException("삭제할 프로필 이미지가 없습니다.");
+        }
+
+        try{
+            fileStorageService.deletePhysicalFile(member.getProfileUrl()); // FileStorageService를 사용하여 파일 삭제
+            member.updateProfileUrl(null); // Member 엔티티의 profileUrl null로 설정
+            memberRepository.save(member); // 변경사항 저장
+        } catch (Exception e) {
+            throw new RuntimeException("프로필 이미지 삭제 실패.", e);
+        }
+    }
+
+    // 특정 회원의 프로필 이미지 URL 조회 (별도 메서드로도 제공 가능)
+    public String getProfileImageUrl(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new NoSuchElementException("회원을 찾을 수 없습니다."));
+        return member.getProfileUrl();
+    }
 }
