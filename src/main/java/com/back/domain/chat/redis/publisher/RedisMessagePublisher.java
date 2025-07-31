@@ -24,7 +24,7 @@ public class RedisMessagePublisher {
             log.info("=== Redis Publisher 메시지 발행 ===");
             log.info("발행할 메시지: 채팅방={}, 발신자={}, 내용={}",
                     message.getChatRoomId(),
-                    message.getSender(),
+                    message.getSenderName(),
                     message.getContent());
 
             // Redis 채널에 메시지 발행

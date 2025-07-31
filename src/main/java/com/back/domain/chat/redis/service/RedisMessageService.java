@@ -26,7 +26,7 @@ public class RedisMessageService {
             log.info("=== Redis로 메시지 발행 ===");
             log.info("채팅방: {}, 발신자: {}, 내용: {}",
                     message.getChatRoomId(),
-                    message.getSender(),
+                    message.getSenderName(),
                     message.getContent());
 
             // MessageDto를 JSON 문자열로 변환

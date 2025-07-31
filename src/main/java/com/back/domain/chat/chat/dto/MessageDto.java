@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import lombok.Setter;
 
 import java.util.Objects;
@@ -15,13 +16,16 @@ public class MessageDto {
     private Long senderId;
     private Long chatRoomId;
 
+    @JsonProperty("senderName")
     private String senderName;
+    @NonNull
     private String senderEmail;
+    @NonNull
     private String content;
 
     // Jackson JSON 역직렬화를 위한 sender 필드 (senderName과 동일)
-    @JsonProperty("sender")
-    private String sender;
+
+//    private String sender;
 
     @JsonCreator
     public MessageDto(
@@ -47,7 +51,7 @@ public class MessageDto {
 
 
     public void setSender(String sender) {
-        this.sender = sender;
+//        this.sender = sender;
         this.senderName = sender;
     }
 

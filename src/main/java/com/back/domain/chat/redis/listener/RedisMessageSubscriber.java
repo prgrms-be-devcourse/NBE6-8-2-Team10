@@ -41,7 +41,7 @@ public class RedisMessageSubscriber implements MessageListener {
 
             log.info("변환된 메시지 - 채팅방: {}, 발신자: {}, 내용: {}",
                     chatMessage.getChatRoomId(),
-                    chatMessage.getSender(),
+                    chatMessage.getSenderName(),
                     chatMessage.getContent());
 
             // WebSocket을 통해 클라이언트들에게 전송

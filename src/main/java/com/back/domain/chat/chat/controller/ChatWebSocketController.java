@@ -22,7 +22,7 @@ public class ChatWebSocketController {
     @MessageMapping("/sendMessage")
     public void sendMessage(MessageDto chatMessage) {
         log.info("=== WebSocket 메시지 수신 ===");
-        log.info("sender: {}", chatMessage.getSender());
+        log.info("sender: {}", chatMessage.getSenderName());
         log.info("senderEmail: {}", chatMessage.getSenderEmail());
         log.info("content: {}", chatMessage.getContent());
         log.info("senderId: {}", chatMessage.getSenderId());
