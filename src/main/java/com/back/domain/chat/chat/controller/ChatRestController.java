@@ -3,7 +3,6 @@ package com.back.domain.chat.chat.controller;
 import com.back.domain.chat.chat.dto.ChatRoomDto;
 import com.back.domain.chat.chat.dto.MessageDto;
 import com.back.domain.chat.chat.service.ChatService;
-import com.back.domain.member.entity.Member;
 import com.back.global.rsData.RsData;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -20,8 +19,6 @@ public class ChatRestController {
 
     @GetMapping("/rooms/{chatRoomId}/messages")
     public RsData<List<MessageDto>> getChatRoomMessages(@PathVariable Long chatRoomId, Principal principal) {
-        Member member = chatService.findByEmail(principal.getName());
-
         List<MessageDto> messageDtos = chatService.getChatRoomMessages(chatRoomId, principal);
 
         return new RsData<>("200-1", "채팅방 메시지 조회 성공", messageDtos);

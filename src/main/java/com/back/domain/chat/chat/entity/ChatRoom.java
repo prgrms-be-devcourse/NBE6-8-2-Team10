@@ -12,6 +12,9 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
+@Table(uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"post_id", "member_id"})
+})
 public class ChatRoom extends BaseEntity {
     // 게시글 매니투원 설정
     @ManyToOne

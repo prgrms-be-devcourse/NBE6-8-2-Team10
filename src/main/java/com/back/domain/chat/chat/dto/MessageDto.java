@@ -29,29 +29,22 @@ public class MessageDto {
             @JsonProperty("chatRoomId") Long chatRoomId,
             @JsonProperty("senderName") String senderName,
             @JsonProperty("senderEmail") String senderEmail,
-            @JsonProperty("content") String content,
-            @JsonProperty("sender") String sender) {
+            @JsonProperty("content") String content) {
         this.senderId = senderId;
         this.chatRoomId = chatRoomId;
         this.senderName = senderName;
         this.senderEmail = senderEmail;
         this.content = content;
-        this.sender = sender != null ? sender : senderName; // sender가 null이면 senderName 사용
+
     }
 
     public MessageDto(String senderName, String content, Long senderId, Long chatRoomId) {
         this.senderName = senderName;
-        this.sender = senderName; // 동기화
         this.content = content;
         this.senderId = senderId;
         this.chatRoomId = chatRoomId;
     }
 
-    // senderName과 sender 동기화
-    public void setSenderName(String senderName) {
-        this.senderName = senderName;
-        this.sender = senderName;
-    }
 
     public void setSender(String sender) {
         this.sender = sender;
