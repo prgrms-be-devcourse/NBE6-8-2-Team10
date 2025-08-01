@@ -35,7 +35,7 @@ public class AdminController {
         Page<MemberInfoResponse> members = adminService.getAllMembers(pageable);
 
         RsData<Page<MemberInfoResponse>> response =
-                new RsData<>("200-1", "회원 목록 조회 성공", members);
+                new RsData<>(ResultCode.SUCCESS, "회원 목록 조회 성공", members);
 
         return ResponseEntity.ok(response);
     }
@@ -45,7 +45,7 @@ public class AdminController {
     @GetMapping("/members/{memberId}")
     public ResponseEntity<RsData<AdminMemberResponse>> getMemberDetail(@PathVariable Long memberId) {
         AdminMemberResponse response = adminService.getMemberDetail(memberId);
-        return ResponseEntity.ok(new RsData<>("200-2", "회원 상세 조회 성공", response));
+        return ResponseEntity.ok(new RsData<>(ResultCode.SUCCESS, "회원 정보 조회 성공", response));
     }
 
     // 회원 정보 수정 API
@@ -57,7 +57,7 @@ public class AdminController {
     ) {
         adminService.updateMemberInfo(memberId, request);
         return ResponseEntity.ok(
-                new RsData<>(ResultCode.MEMBER_UPDATE_SUCCESS, "회원 정보 수정 성공")
+                new RsData<>(ResultCode.SUCCESS, "회원 정보 수정 성공")
         );
     }
 }

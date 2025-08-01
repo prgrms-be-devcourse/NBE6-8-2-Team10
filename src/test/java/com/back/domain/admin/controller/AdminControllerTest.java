@@ -59,7 +59,7 @@ public class AdminControllerTest {
                         .param("sort", "createdAt,DESC")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.resultCode").value("200-1"))
+                .andExpect(jsonPath("$.resultCode").value("200"))
                 .andExpect(jsonPath("$.msg").value("회원 목록 조회 성공"))
                 .andExpect(jsonPath("$.data.content").isArray())
                 .andExpect(jsonPath("$.data.pageable.pageNumber").value(0))
@@ -95,7 +95,7 @@ public class AdminControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.resultCode").value("404-1"))
-                .andExpect(jsonPath("$.msg").value("해당 회원이 존재하지 않습니다."));
+                .andExpect(jsonPath("$.msg").value("존재하지 않는 회원입니다."));
     }
 
     @Test
@@ -117,7 +117,7 @@ public class AdminControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.resultCode").value("200-7"))
+                .andExpect(jsonPath("$.resultCode").value("200"))
                 .andExpect(jsonPath("$.msg").value("회원 정보 수정 성공"));
 
         // then
@@ -147,7 +147,7 @@ public class AdminControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.resultCode").value("404-1"))
-                .andExpect(jsonPath("$.msg").value("해당 데이터가 존재하지 않습니다."));
+                .andExpect(jsonPath("$.msg").value("해당 회원이 존재하지 않습니다."));
     }
 
 }

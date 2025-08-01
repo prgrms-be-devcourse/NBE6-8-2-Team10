@@ -1,6 +1,7 @@
 package com.back.domain.files.files.controller;
 
 import com.back.domain.files.files.dto.FileUploadResponseDto;
+import com.back.domain.files.files.service.FileStorageService;
 import com.back.domain.files.files.service.FilesService;
 import com.back.global.rsData.RsData;
 import org.junit.jupiter.api.DisplayName;
@@ -35,6 +36,9 @@ class AdminFilesControllerTest {
 
     @MockitoBean
     private FilesService filesService;
+
+    @MockitoBean
+    private FileStorageService fileStorageService;
 
     @Test
     @DisplayName("관리자 전체 파일 목록 조회 - 성공")
@@ -107,7 +111,7 @@ class AdminFilesControllerTest {
     void deleteFile_success() throws Exception {
         // given
         Long fileId = 1L;
-        RsData<Void> response = new RsData<>("200", "파일 삭제 성공 (관리자)", null);
+        RsData<Void> response = new RsData<>("200", "파일 삭제 성공", null);
 
         Mockito.when(filesService.adminDeleteFile(fileId)).thenReturn(response);
 
@@ -115,7 +119,7 @@ class AdminFilesControllerTest {
         mockMvc.perform(delete("/api/admin/files/{fileId}", fileId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.resultCode").value("200"))
-                .andExpect(jsonPath("$.msg").value("파일 삭제 성공 (관리자)"))
+                .andExpect(jsonPath("$.msg").value("파일 삭제 성공"))
                 .andExpect(jsonPath("$.data").doesNotExist());
     }
 }

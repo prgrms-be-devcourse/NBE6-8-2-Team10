@@ -87,8 +87,8 @@ public class MemberControllerTest {
         mockMvc.perform(delete("/api/members/me")
                         .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.resultCode").value("200-6"))
-                .andExpect(jsonPath("$.msg").value("회원 탈퇴 성공했습니다."));
+                .andExpect(jsonPath("$.resultCode").value("200"))
+                .andExpect(jsonPath("$.msg").value("회원 탈퇴 성공"));
 
         // then - 실제 DB 상태 확인
         Member deletedMember = memberRepository.findByEmail(email).orElseThrow();
@@ -139,8 +139,8 @@ public class MemberControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.resultCode").value("200-7"))
-                .andExpect(jsonPath("$.msg").value("회원 정보 수정에 성공했습니다."));
+                .andExpect(jsonPath("$.resultCode").value("200"))
+                .andExpect(jsonPath("$.msg").value("회원 정보 수정 성공"));
 
         Member updated = memberRepository.findByEmail("user1@user.com").orElseThrow();
         assertEquals("이름개명", updated.getName());
@@ -184,8 +184,8 @@ public class MemberControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.resultCode").value("200-7"))
-                .andExpect(jsonPath("$.msg").value("회원 정보 수정에 성공했습니다."));
+                .andExpect(jsonPath("$.resultCode").value("200"))
+                .andExpect(jsonPath("$.msg").value("회원 정보 수정 성공"));
 
         Member updated = memberRepository.findByEmail("user1@user.com").orElseThrow();
         assertTrue(passwordEncoder.matches("newpass123!", updated.getPassword()));
@@ -205,7 +205,7 @@ public class MemberControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.resultCode").value("400-4"))
+                .andExpect(jsonPath("$.resultCode").value("400-3"))
                 .andExpect(jsonPath("$.msg").value("현재 비밀번호가 일치하지 않습니다."));
     }
 
@@ -223,7 +223,7 @@ public class MemberControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.resultCode").value("400-4"))
+                .andExpect(jsonPath("$.resultCode").value("400"))
                 .andExpect(jsonPath("$.msg").value("현재 비밀번호를 입력해주세요."));
     }
 
@@ -243,8 +243,8 @@ public class MemberControllerTest {
         // when & then
         mockMvc.perform(get("/api/members/" + otherMember.getId()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.resultCode").value("200-8"))
-                .andExpect(jsonPath("$.msg").value("프로필 조회 성공"))
+                .andExpect(jsonPath("$.resultCode").value("200"))
+                .andExpect(jsonPath("$.msg").value("사용자 프로필 조회 성공"))
                 .andExpect(jsonPath("$.data.name").value("다른유저"))
                 .andExpect(jsonPath("$.data.profileUrl").value("https://example.com/profile.jpg"));
     }
@@ -259,7 +259,7 @@ public class MemberControllerTest {
         // when & then
         mockMvc.perform(get("/api/members/" + nonExistentId))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.resultCode").value("404-2"))
+                .andExpect(jsonPath("$.resultCode").value("404-1"))
                 .andExpect(jsonPath("$.msg").value("해당 사용자가 존재하지 않습니다."));
     }
 }

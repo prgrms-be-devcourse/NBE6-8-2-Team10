@@ -8,14 +8,14 @@ import com.back.domain.member.dto.response.MemberMyPageResponse;
 import com.back.domain.member.dto.response.OtherMemberInfoResponse;
 import com.back.domain.member.entity.Member;
 import com.back.domain.member.repository.MemberRepository;
+import com.back.global.exception.ServiceException;
+import com.back.global.rsData.ResultCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
@@ -33,7 +33,7 @@ public class MemberService {
 
         // 1. 이메일 중복 검사
         if (memberRepository.existsByEmail(request.email())) {
-            throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+            throw new ServiceException(ResultCode.DUPLICATE_EMAIL.code(), "이미 사용 중인 이메일입니다.");
         }
 
         Member member = Member.builder()
@@ -50,7 +50,7 @@ public class MemberService {
     public void deleteAccount(Member member) {
         // 1. 반드시 영속 상태로 다시 가져오기
         Member foundMember = memberRepository.findById(member.getId())
-                .orElseThrow(() -> new NoSuchElementException("회원 정보가 존재하지 않습니다."));
+                .orElseThrow(() -> new ServiceException(ResultCode.MEMBER_NOT_FOUND.code(), "회원 정보가 존재하지 않습니다."));
 
         // 2. 회원 탈퇴 처리
         foundMember.delete();
@@ -61,7 +61,7 @@ public class MemberService {
     public MemberMyPageResponse findMyPage(Member member) {
         // 1. 반드시 영속 상태로 다시 가져오기
         Member foundMember = memberRepository.findById(member.getId())
-                .orElseThrow(() -> new NoSuchElementException("회원 정보가 존재하지 않습니다."));
+                .orElseThrow(() -> new ServiceException(ResultCode.MEMBER_NOT_FOUND.code(), "회원 정보가 존재하지 않습니다."));
 
         // 2. 마이페이지 정보 반환
         return MemberMyPageResponse.fromEntity(foundMember);
@@ -72,7 +72,7 @@ public class MemberService {
     public void updateMemberInfo(Member member, MemberUpdateRequest request) {
         // 1. 반드시 영속 상태로 다시 가져오기
         Member foundMember = memberRepository.findById(member.getId())
-                .orElseThrow(() -> new NoSuchElementException("회원 정보가 존재하지 않습니다."));
+                .orElseThrow(() -> new ServiceException(ResultCode.MEMBER_NOT_FOUND.code(), "회원 정보가 존재하지 않습니다."));
 
         // 2. 이름 변경
         if (request.name() != null && !request.name().isBlank()) {
@@ -87,11 +87,11 @@ public class MemberService {
         // 4. 비밀번호 변경 요청이 있을 경우만 현재 비밀번호 확인
         if (request.newPassword() != null && !request.newPassword().isBlank()) {
             if (request.currentPassword() == null || request.currentPassword().isBlank()) {
-                throw new IllegalArgumentException("현재 비밀번호를 입력해주세요.");
+                throw new ServiceException(ResultCode.BAD_REQUEST.code(), "현재 비밀번호를 입력해주세요.");
             }
 
             if (!passwordEncoder.matches(request.currentPassword(), foundMember.getPassword())) {
-                throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
+                throw new ServiceException(ResultCode.INVALID_PASSWORD.code(), "현재 비밀번호가 일치하지 않습니다.");
             }
 
             foundMember.updatePassword(passwordEncoder.encode(request.newPassword()));
@@ -102,7 +102,7 @@ public class MemberService {
     // 사용자 프로필 조회
     public OtherMemberInfoResponse getMemberProfileById(Long id) {
         Member member = memberRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("해당 사용자가 존재하지 않습니다."));
+                .orElseThrow(() -> new ServiceException(ResultCode.MEMBER_NOT_FOUND.code(), "해당 사용자가 존재하지 않습니다."));
         return OtherMemberInfoResponse.fromEntity(member);
     }
 
@@ -112,11 +112,11 @@ public class MemberService {
     public String uploadProfileImage(Long memberId, MultipartFile file) {
         // file이 null이거나 비어있는 경우 예외 처리
         if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("업로드할 파일이 없습니다.");
+            throw new ServiceException(ResultCode.BAD_REQUEST.code(), "업로드할 파일이 없습니다.");
         }
 
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new NoSuchElementException("회원을 찾을 수 없습니다."));
+                .orElseThrow(() -> new ServiceException(ResultCode.MEMBER_NOT_FOUND.code(), "회원을 찾을 수 없습니다."));
 
         // 기존 프로필 이미지가 있다면 삭제
         String oldProfileUrl = member.getProfileUrl();
@@ -136,7 +136,7 @@ public class MemberService {
             memberRepository.save(member);
             return newProfileUrl;
         } catch (Exception e) {
-            throw new RuntimeException("프로필 이미지 업로드에 실패했습니다.", e);
+            throw new ServiceException(ResultCode.FILE_UPLOAD_FAIL.code(), "프로필 이미지 업로드에 실패했습니다.");
         }
     }
 
@@ -144,10 +144,10 @@ public class MemberService {
     @Transactional
     public void deleteProfileImage(Long memberId) {
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new NoSuchElementException("회원을 찾을 수 없습니다."));
+                .orElseThrow(() -> new ServiceException(ResultCode.MEMBER_NOT_FOUND.code(), "회원을 찾을 수 없습니다."));
 
         if (member.getProfileUrl() == null || member.getProfileUrl().isEmpty()) {
-            throw new IllegalArgumentException("삭제할 프로필 이미지가 없습니다.");
+            throw new ServiceException(ResultCode.BAD_REQUEST.code(), "삭제할 프로필 이미지가 없습니다.");
         }
 
         try{
@@ -155,14 +155,14 @@ public class MemberService {
             member.updateProfileUrl(null); // Member 엔티티의 profileUrl null로 설정
             memberRepository.save(member); // 변경사항 저장
         } catch (Exception e) {
-            throw new RuntimeException("프로필 이미지 삭제 실패.", e);
+            throw new ServiceException(ResultCode.FILE_DELETE_FAIL.code(), "프로필 이미지 삭제 실패.");
         }
     }
 
     // 특정 회원의 프로필 이미지 URL 조회 (별도 메서드로도 제공 가능)
     public String getProfileImageUrl(Long memberId) {
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new NoSuchElementException("회원을 찾을 수 없습니다."));
+                .orElseThrow(() -> new ServiceException(ResultCode.MEMBER_NOT_FOUND.code(), "회원을 찾을 수 없습니다."));
         return member.getProfileUrl();
     }
 }

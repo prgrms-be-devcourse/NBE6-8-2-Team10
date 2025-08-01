@@ -1,6 +1,7 @@
 package com.back.domain.files.files.controller;
 
 import com.back.domain.files.files.dto.FileUploadResponseDto;
+import com.back.domain.files.files.service.FileStorageService;
 import com.back.domain.files.files.service.FilesService;
 import com.back.global.rsData.RsData;
 import org.junit.jupiter.api.DisplayName;
@@ -35,6 +36,9 @@ public class FilesControllerTest {
 
     @MockitoBean
     private FilesService filesService;
+
+    @MockitoBean
+    private FileStorageService fileStorageService;
 
     @Test
     @DisplayName("파일 업로드 성공")
@@ -83,7 +87,7 @@ public class FilesControllerTest {
         // RsData 응답 구성
         RsData<List<FileUploadResponseDto>> rsData = new RsData<>(
                 "200",
-                "첨부된 파일이 없습니다",
+                "첨부된 파일이 없습니다.",
                 emptyResponse
         );
 
@@ -94,7 +98,7 @@ public class FilesControllerTest {
                         .file(new MockMultipartFile("files", new byte[0]))) // 빈 파일
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.resultCode").value("200"))
-                .andExpect(jsonPath("$.msg").value("첨부된 파일이 없습니다"))
+                .andExpect(jsonPath("$.msg").value("첨부된 파일이 없습니다."))
                 .andExpect(jsonPath("$.data").isArray())
                 .andExpect(jsonPath("$.data").isEmpty());
     }

@@ -7,14 +7,13 @@ import com.back.domain.member.entity.Member;
 import com.back.domain.member.entity.Role;
 import com.back.domain.member.repository.MemberRepository;
 import com.back.global.exception.ServiceException;
+import com.back.global.rsData.ResultCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
@@ -37,7 +36,7 @@ public class AdminService {
     public AdminMemberResponse getMemberDetail(Long memberId) {
         log.info("회원 상세 조회 요청 - memberId: {}", memberId);
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new ServiceException("404-1", "해당 회원이 존재하지 않습니다."));
+                .orElseThrow(() -> new ServiceException(ResultCode.MEMBER_NOT_FOUND.code(), "존재하지 않는 회원입니다."));
 
         return AdminMemberResponse.fromEntity(member);
     }
@@ -47,7 +46,7 @@ public class AdminService {
         log.info("회원 정보 수정 요청 - memberId: {}", memberId);
 
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new NoSuchElementException("해당 회원이 존재하지 않습니다."));
+                .orElseThrow(() -> new ServiceException(ResultCode.MEMBER_NOT_FOUND.code(), "해당 회원이 존재하지 않습니다."));
 
         // 1. 이름 변경
         if (request.name() != null && !request.name().isBlank()) {
@@ -70,7 +69,5 @@ public class AdminService {
         }
 
         memberRepository.save(member);
-
     }
-
 }

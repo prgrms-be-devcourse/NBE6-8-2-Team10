@@ -71,7 +71,7 @@ public class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.resultCode").value("200-2"))  // ResultCode에 맞게 수정
+                .andExpect(jsonPath("$.resultCode").value("200"))  // ResultCode에 맞게 수정
                 .andExpect(jsonPath("$.msg").value("회원가입 성공"));
     }
 
@@ -95,7 +95,7 @@ public class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.resultCode").value("400-1")) // 예: 이메일 중복 오류 코드
+                .andExpect(jsonPath("$.resultCode").value("400-2"))
                 .andExpect(jsonPath("$.msg").value("이미 사용 중인 이메일입니다."));
     }
 
@@ -110,7 +110,7 @@ public class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.resultCode").value("200-1")) // 로그인 성공 코드
+                .andExpect(jsonPath("$.resultCode").value("200")) // 로그인 성공 코드
                 .andExpect(jsonPath("$.data.accessToken").exists())
                 .andReturn();
     }
@@ -126,7 +126,7 @@ public class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.resultCode").value("401-3"))
+                .andExpect(jsonPath("$.resultCode").value("401-1"))
                 .andExpect(jsonPath("$.msg").value("이메일 또는 비밀번호가 잘못되었습니다."));
     }
 
@@ -191,7 +191,7 @@ public class AuthControllerTest {
                 logoutResponseJson, new TypeReference<RsData<Void>>() {});
 
         // then - 로그아웃 응답 검증
-        assertThat(logoutRsData.resultCode()).isEqualTo(ResultCode.LOGOUT_SUCCESS.code());
+        assertThat(logoutRsData.resultCode()).isEqualTo(ResultCode.SUCCESS.code());
         assertThat(logoutRsData.msg()).isEqualTo("로그아웃 성공");
 
         // 로그아웃 후 refreshToken 제거되었는지 확인
@@ -226,7 +226,7 @@ public class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(reissueRequest)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.resultCode").value("200-5"))
+                .andExpect(jsonPath("$.resultCode").value("200"))
                 .andExpect(jsonPath("$.data.accessToken").exists())
                 .andExpect(jsonPath("$.data.refreshToken").exists());
     }
@@ -245,8 +245,8 @@ public class AuthControllerTest {
         // then: 401 Unauthorized 응답 및 메시지 검증
         resultActions
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.resultCode").value("401-1"))
-                .andExpect(jsonPath("$.msg").value("토큰 재발급에 실패했습니다."));
+                .andExpect(jsonPath("$.resultCode").value("401-3"))
+                .andExpect(jsonPath("$.msg").value("유효하지 않은 리프레시 토큰입니다."));
     }
 
     @Test
@@ -269,8 +269,8 @@ public class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(reissueRequest)))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.resultCode").value("401-1"))
-                .andExpect(jsonPath("$.msg").value("토큰 재발급에 실패했습니다."));
+                .andExpect(jsonPath("$.resultCode").value("401-3"))
+                .andExpect(jsonPath("$.msg").value("유효하지 않은 리프레시 토큰입니다."));
     }
 
     @Test
@@ -293,8 +293,8 @@ public class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(reissueRequest)))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.resultCode").value("401-1"))
-                .andExpect(jsonPath("$.msg").value("토큰 재발급에 실패했습니다."));
+                .andExpect(jsonPath("$.resultCode").value("401-3"))
+                .andExpect(jsonPath("$.msg").value("유효하지 않은 리프레시 토큰입니다."));
     }
 
     @Test
@@ -331,7 +331,7 @@ public class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(secondReissue)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.resultCode").value("200-5"))
+                .andExpect(jsonPath("$.resultCode").value("200"))
                 .andExpect(jsonPath("$.data.accessToken").exists())
                 .andExpect(jsonPath("$.data.refreshToken").exists());
     }
@@ -356,8 +356,8 @@ public class AuthControllerTest {
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isUnauthorized()) // 401
-                .andExpect(jsonPath("$.resultCode").value("401-3"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.resultCode").value("403"))
                 .andExpect(jsonPath("$.msg").value("이메일 또는 비밀번호가 잘못되었습니다."));
     }
 }

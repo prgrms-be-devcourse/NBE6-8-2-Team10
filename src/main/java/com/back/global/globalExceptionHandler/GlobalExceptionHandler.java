@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
@@ -18,7 +20,9 @@ import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 @RestControllerAdvice
 @RequiredArgsConstructor
@@ -34,6 +38,27 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<RsData<Void>> handle(BadCredentialsException ex) {
+        return new ResponseEntity<>(
+                new RsData<>(
+                        "401-3",
+                        "이메일 또는 비밀번호가 잘못되었습니다."
+                ),
+                UNAUTHORIZED
+        );
+    }
+
+    @ExceptionHandler(DisabledException.class)
+    public ResponseEntity<RsData<Void>> handle(DisabledException ex) {
+        return new ResponseEntity<>(
+                new RsData<>(
+                        "403",
+                        "이메일 또는 비밀번호가 잘못되었습니다."
+                ),
+                FORBIDDEN
+        );
+    }
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<RsData<Void>> handle(ConstraintViolationException ex) {
