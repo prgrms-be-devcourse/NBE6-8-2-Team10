@@ -25,6 +25,9 @@ import java.util.Optional;
 @Builder
 public class Post extends BaseEntity {
 
+    @Version
+    private Long version; // 동시성 충돌 방지용 버전 필드
+
     // Member ID(외래키)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)

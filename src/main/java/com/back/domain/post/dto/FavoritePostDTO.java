@@ -10,15 +10,17 @@ public record FavoritePostDTO(
         int price,
         int favoriteCnt,
         String status,
+        boolean isLiked,
         LocalDateTime createdAt
 ) {
-    public FavoritePostDTO(FavoritePost favoritePost) {
+    public FavoritePostDTO(FavoritePost favoritePost, boolean isLiked) {
         this(
                 favoritePost.getPost().getId(),
                 favoritePost.getPost().getTitle(),
                 favoritePost.getPost().getPrice(),
                 favoritePost.getPost().getFavoriteCnt(),
                 favoritePost.getPost().getStatus().getLabel(),
+                isLiked,
                 favoritePost.getPost().getCreatedAt()
         );
     }
