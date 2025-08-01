@@ -42,7 +42,8 @@ public class SecurityConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // 인증 없이 접근 가능한 경로들
-                        .requestMatchers("/api/auth/signup", "/api/auth/login", "/api/auth/reissue").permitAll()
+                        .requestMatchers("/api/auth/signup", "/api/auth/login", "/api/auth/reissue",
+                                            "/api/posts", "/api/posts/popular", "/api/posts/{postId}").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
 
                         // Swagger 관련 경로들 - 더 구체적으로 설정
