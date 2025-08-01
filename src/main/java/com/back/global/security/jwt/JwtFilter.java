@@ -3,6 +3,7 @@ package com.back.global.security.jwt;
 import com.back.global.security.auth.CustomUserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -38,7 +39,7 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
 
-        // 요청 헤더에서 토큰 추출 (예: Authorization 헤더에서 "Bearer {token}")
+        // 요청에서 토큰 추출 (Authorization 헤더 또는 쿠키에서)
         String token = resolveToken(request);
 
         // 토큰이 존재하고 유효한 경우 인증 처리
@@ -73,10 +74,22 @@ public class JwtFilter extends OncePerRequestFilter {
     }
 
     private String resolveToken(HttpServletRequest request) {
+        // 1. Authorization 헤더에서 토큰 확인 (앱 환경용)
         String bearer = request.getHeader("Authorization");
         if (bearer != null && bearer.startsWith("Bearer ")) {
             return bearer.substring(7);
         }
+        
+        // 2. 쿠키에서 토큰 확인 (웹 환경용, 자동 전송)
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("accessToken".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        
         return null;
     }
 
