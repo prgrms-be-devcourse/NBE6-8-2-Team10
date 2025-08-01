@@ -1,13 +1,17 @@
 package com.back.domain.post.service;
 
 import com.back.domain.member.entity.Member;
-import com.back.domain.post.dto.*;
+import com.back.domain.post.dto.FavoriteResponseDTO;
+import com.back.domain.post.dto.PostDetailDTO;
+import com.back.domain.post.dto.PostListDTO;
+import com.back.domain.post.dto.PostRequestDTO;
 import com.back.domain.post.entity.FavoritePost;
 import com.back.domain.post.entity.Post;
 import com.back.domain.post.repository.FavoritePostRepository;
 import com.back.domain.post.repository.PostRepository;
 import com.back.global.exception.ServiceException;
 import com.back.global.rq.Rq;
+import com.back.global.rsData.ResultCode;
 import com.back.global.rsData.RsData;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -61,7 +65,7 @@ public class PostService {
         Post post = getPostOrThrow(postId);
 
         boolean isLiked = favoritePostRepository.existsByMemberAndPost(member, post);
-        return new RsData<>("SUCCESS", "게시글 조회 성공", new PostDetailDTO(post, isLiked));
+        return new RsData<>(ResultCode.SUCCESS, "게시글 조회 성공", new PostDetailDTO(post, isLiked));
     }
 
     //인기 게시글 조회

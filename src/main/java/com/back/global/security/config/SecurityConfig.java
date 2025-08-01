@@ -68,6 +68,9 @@ public class SecurityConfig {
                         .requestMatchers("/*.html").permitAll() // HTML 파일 접근 허용
                         .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
 
+                        // 에러 경로 허용
+                        .requestMatchers("/error").permitAll()
+
                         .anyRequest().authenticated()
                 )
                 // JWT 필터를 조건부로 적용
