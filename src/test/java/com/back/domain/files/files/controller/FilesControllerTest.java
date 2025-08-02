@@ -41,66 +41,51 @@ public class FilesControllerTest {
     private FileStorageService fileStorageService;
 
     @Test
-    @DisplayName("파일 업로드 성공")
+    @DisplayName("파일 업로드 요청 성공")
     @WithMockUser(username = "test-user", roles = "USER")
     void t1() throws Exception {
-        // 주입
+        // Given
         MockMultipartFile file1 = new MockMultipartFile(
                 "files", "test1.png", "image/png", "fake-image-content".getBytes());
 
-        List<FileUploadResponseDto> response = List.of(
-                new FileUploadResponseDto(
-                        1L,
-                        5L,
-                        "test1.png",
-                        "image/png",
-                        20L,
-                        "http://example.com/uploads/test1.png",
-                        1,
-                        LocalDateTime.now()
-                )
-        );
-
-        RsData<List<FileUploadResponseDto>> rsData = new RsData<>(
+        // uploadFiles는 이제 즉시 문자열 응답을 반환
+        RsData<String> rsData = new RsData<>(
                 "200",
-                "파일 업로드 성공",
-                response
+                "파일 업로드가 시작되었습니다. 완료 시 별도의 알림은 전송되지 않습니다.",
+                "Upload initiated"
         );
 
         given(filesService.uploadFiles(eq(5L), any(MultipartFile[].class))).willReturn(rsData);
 
+        // When & Then
         mockMvc.perform(multipart("/api/posts/5/files")
-                .file(file1))
+                        .file(file1))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.resultCode").value("200"))
-                .andExpect(jsonPath("$.msg").value("파일 업로드 성공"))
-                .andExpect(jsonPath("$.data[0].fileName").value("test1.png"));
+                .andExpect(jsonPath("$.msg").value("파일 업로드가 시작되었습니다. 완료 시 별도의 알림은 전송되지 않습니다."))
+                .andExpect(jsonPath("$.data").value("Upload initiated"));
     }
 
     @Test
-    @DisplayName("파일 없이 업로드 - 첨부된 파일 없음")
+    @DisplayName("파일 없이 업로드 요청 - 즉시 성공 응답")
     @WithMockUser(username = "test-user", roles = "USER")
     void t2() throws Exception {
-        // 빈 응답 데이터
-        List<FileUploadResponseDto> emptyResponse = List.of();
-
-        // RsData 응답 구성
-        RsData<List<FileUploadResponseDto>> rsData = new RsData<>(
+        // Given
+        RsData<String> rsData = new RsData<>(
                 "200",
-                "첨부된 파일이 없습니다.",
-                emptyResponse
+                "파일 업로드가 시작되었습니다. 완료 시 별도의 알림은 전송되지 않습니다.",
+                "Upload initiated"
         );
 
         given(filesService.uploadFiles(eq(5L), any(MultipartFile[].class))).willReturn(rsData);
 
-        // 실제 요청 (파일 없음)
+        // When & Then
         mockMvc.perform(multipart("/api/posts/5/files")
                         .file(new MockMultipartFile("files", new byte[0]))) // 빈 파일
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.resultCode").value("200"))
-                .andExpect(jsonPath("$.msg").value("첨부된 파일이 없습니다."))
-                .andExpect(jsonPath("$.data").isArray())
-                .andExpect(jsonPath("$.data").isEmpty());
+                .andExpect(jsonPath("$.msg").value("파일 업로드가 시작되었습니다. 완료 시 별도의 알림은 전송되지 않습니다."))
+                .andExpect(jsonPath("$.data").value("Upload initiated"));
     }
 
 

@@ -24,11 +24,13 @@ public class FilesController {
 
     @Operation(summary = "파일 업로드", description = "게시글에 파일을 업로드 합니다")
     @PostMapping(value = "/{postId}/files", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public RsData<List<FileUploadResponseDto>> uploadFiles(
+    // uploadFiles 메서드의 반환 타입을 RsData<String>으로 변경
+    public RsData<String> uploadFiles(
             @PathVariable @Positive long postId,
-            @Parameter (description = "업로드할 파일들", required = false)
+            @Parameter(description = "업로드할 파일들", required = false)
             @RequestPart(value = "files", required = false) MultipartFile[] files
     ) {
+        // 서비스 호출 결과(즉각적인 응답)를 그대로 반환
         return filesService.uploadFiles(postId, files);
     }
 
