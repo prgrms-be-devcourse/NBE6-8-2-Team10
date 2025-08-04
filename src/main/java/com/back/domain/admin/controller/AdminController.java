@@ -3,7 +3,6 @@ package com.back.domain.admin.controller;
 import com.back.domain.admin.dto.request.AdminUpdateMemberRequest;
 import com.back.domain.admin.dto.response.AdminMemberResponse;
 import com.back.domain.admin.service.AdminService;
-import com.back.domain.member.dto.response.MemberInfoResponse;
 import com.back.global.rsData.ResultCode;
 import com.back.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,13 +27,13 @@ public class AdminController {
     // 전체 회원 목록 조회 API(탈퇴 포함)
     @Operation(summary = "전체 회원 목록 조회", description = "모든 회원 목록을 페이징하여 조회합니다 (탈퇴 포함)")
     @GetMapping("/members")
-    public ResponseEntity<RsData<Page<MemberInfoResponse>>> getAllMembers(
+    public ResponseEntity<RsData<Page<AdminMemberResponse>>> getAllMembers(
             @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC)
             Pageable pageable) {
 
-        Page<MemberInfoResponse> members = adminService.getAllMembers(pageable);
+        Page<AdminMemberResponse> members = adminService.getAllMembers(pageable);
 
-        RsData<Page<MemberInfoResponse>> response =
+        RsData<Page<AdminMemberResponse>> response =
                 new RsData<>(ResultCode.SUCCESS, "회원 목록 조회 성공", members);
 
         return ResponseEntity.ok(response);
@@ -60,4 +59,4 @@ public class AdminController {
                 new RsData<>(ResultCode.SUCCESS, "회원 정보 수정 성공")
         );
     }
-}
+} 

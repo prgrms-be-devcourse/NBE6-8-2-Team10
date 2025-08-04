@@ -24,12 +24,12 @@ public class AdminService {
     private final PasswordEncoder passwordEncoder;
 
     // 전체 회원 목록 조회(관리자 제외)
-    public Page<MemberInfoResponse> getAllMembers(Pageable pageable) {
+    public Page<AdminMemberResponse> getAllMembers(Pageable pageable) {
         log.info("전체 회원 목록 조회 요청 (관리자 제외)");
 
         // 페이징 적용 및 DTO 변환하여 반환
         return memberRepository.findAllByRoleNot(Role.ADMIN, pageable)
-                .map(MemberInfoResponse::fromEntity);
+                .map(AdminMemberResponse::fromEntity);
     }
 
     // 회원 상세 조회
