@@ -41,12 +41,12 @@ public class ChatRestController {
         return new RsData<>("200", "내 채팅방 목록 조회 성공", chatRooms);
     }
 
-    @Operation(summary = "채팅방 삭제")
+    @Operation(summary = "채팅방 나가기")
     @DeleteMapping("/rooms/{chatRoomId}")
-    public RsData<ChatRoomDto> deleteChatRoom(@PathVariable Long chatRoomId) {
-        chatService.deleteChatRoom(chatRoomId);
+    public RsData<ChatRoomDto> leaveChatRoom(@PathVariable Long chatRoomId, Principal principal) {
+        chatService.leaveChatRoom(chatRoomId, principal);
 
-        return new RsData<>("200", "채팅방 삭제 성공");
+        return new RsData<>("200", "채팅방 나가기 성공");
     }
 
 

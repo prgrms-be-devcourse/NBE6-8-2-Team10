@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface RoomParticipantRepository extends JpaRepository<RoomParticipant, Long> {
@@ -13,4 +14,8 @@ public interface RoomParticipantRepository extends JpaRepository<RoomParticipant
     List<RoomParticipant> findByChatRoomPostIdAndMemberIdAndIsActiveTrue(Long postId, Long memberId);
 
     List<RoomParticipant> findByMemberIdAndIsActiveTrueOrderByCreatedAtDesc(Long id);
+
+    Optional<RoomParticipant> findByChatRoomIdAndMemberIdAndIsActiveTrue(Long chatRoomId, Long id);
+
+    boolean existsByChatRoomIdAndIsActiveTrue(Long chatRoomId);
 }

@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 
@@ -197,10 +198,24 @@ public class ChatService {
     }
 
     @Transactional
-    public void deleteChatRoom(Long chatRoomId) {
-        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
-                .orElseThrow(() -> new ServiceException("404-4", "존재하지 않는 채팅방입니다."));
+    public void leaveChatRoom(Long chatRoomId, Principal principal) {
+        Member member = memberRepository.findByEmail(principal.getName())
+                .orElseThrow(() -> new ServiceException("404-3", "존재하지 않는 사용자입니다."));
 
-        chatRoomRepository.delete(chatRoom);
+        RoomParticipant participant = roomParticipantRepository
+                .findByChatRoomIdAndMemberIdAndIsActiveTrue(chatRoomId, member.getId())
+                .orElseThrow(() -> new ServiceException("404-5", "채팅방 참여자가 아닙니다."));
+
+        participant.setActive(false);
+        participant.setLeftAt(LocalDateTime.now());
+        roomParticipantRepository.save(participant);
+
+        boolean hasActiveParticipants = roomParticipantRepository.existsByChatRoomIdAndIsActiveTrue(chatRoomId);
+
+        if(!hasActiveParticipants) {
+            ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
+                    .orElseThrow(() -> new ServiceException("404-4", "존재하지 않는 채팅방입니다."));
+            chatRoomRepository.delete(chatRoom);
+        }
     }
 }

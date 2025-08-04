@@ -8,6 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Entity
 @NoArgsConstructor
 @Getter
@@ -28,6 +30,14 @@ public class ChatRoom extends BaseEntity {
 
     // 채팅방 이름 (자동 생성 또는 사용자 지정)
     private String roomName;
+    
+    // 메시지와의 관계 설정 (CASCADE로 ChatRoom 삭제 시 Message도 함께 삭제)
+    @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Message> messages;
+    
+    // 참여자와의 관계 설정 (CASCADE로 ChatRoom 삭제 시 RoomParticipant도 함께 삭제)
+    @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RoomParticipant> participants;
 
     public ChatRoom(Post post, Member member) {
         this.post = post;
