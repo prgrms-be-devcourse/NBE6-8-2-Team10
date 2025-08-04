@@ -1,6 +1,7 @@
 package com.back.config;
 
 import com.back.domain.chat.redis.listener.RedisMessageSubscriber;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -14,12 +15,17 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
 public class RedisConfig {
+
+    @Value("${spring.data.redis.host}")
+    private String redisHost;
+
+    @Value("${spring.data.redis.port}")
+    private int redisPort;
     
     // 1. Redis 연결 설정
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {
-        LettuceConnectionFactory factory = new LettuceConnectionFactory();
-        return factory;
+        return new LettuceConnectionFactory(redisHost, redisPort);
     }
     
     // 2. Redis Template 설정 (일반적인 Redis 사용)

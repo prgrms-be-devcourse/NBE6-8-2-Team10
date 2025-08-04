@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
-@Profile("dev")
+@Profile({"dev", "prod"})
 @Component
 @RequiredArgsConstructor
 @Slf4j

@@ -13,7 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-@Profile("dev")
+@Profile({"dev", "prod"})
 @Component
 @RequiredArgsConstructor
 @Slf4j

@@ -37,9 +37,10 @@ spring:
 #    database-platform: org.hibernat
 
 #redis 설정
-  redis:
-    host: localhost
-    port: 6379
+  data:
+    redis:
+      host: localhost
+      port: 6379
 
 # 로컬 업로드(개발용)
 file:

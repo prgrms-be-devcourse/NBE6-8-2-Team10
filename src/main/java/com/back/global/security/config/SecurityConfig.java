@@ -70,6 +70,7 @@ public class SecurityConfig {
 
                         // 에러 경로 허용
                         .requestMatchers("/error").permitAll()
+                        .requestMatchers("/").permitAll()
 
                         .anyRequest().authenticated()
                 )
@@ -87,7 +88,10 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         
         // 허용할 오리진 설정 (개발 환경)
-        configuration.setAllowedOriginPatterns(List.of("http://localhost:3000"));
+        configuration.setAllowedOrigins(List.of(
+            "http://localhost:3000",
+            "http://34.64.160.179" // 백엔드 서버의 공인 ip입니다.
+        ));
         
         // 허용할 HTTP 메서드 설정 (PATCH 추가)
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
