@@ -3,10 +3,13 @@ package com.back.domain.files.files.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -68,6 +71,22 @@ public class LocalFileStorageService implements FileStorageService {
             }
         } catch (IOException e) {
             throw new RuntimeException("로컬 파일 시스템에서 파일 삭제 실패: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public Resource loadFileAsResource(String fileUrl) {
+        try {
+            String relativePath = fileUrl.substring("/files/".length());
+            Path filePath = Paths.get(uploadDir, relativePath).toAbsolutePath().normalize();
+            Resource resource = new UrlResource(filePath.toUri());
+            if (resource.exists() && resource.isReadable()) {
+                return resource;
+            } else {
+                throw new RuntimeException("파일을 찾을 수 없거나 읽을 수 없습니다: " + fileUrl);
+            }
+        } catch (MalformedURLException e) {
+            throw new RuntimeException("파일 URL 형식이 잘못되었습니다: " + fileUrl, e);
         }
     }
 

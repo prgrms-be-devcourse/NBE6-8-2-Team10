@@ -10,16 +10,19 @@ public record PostListDTO(
         int price,
         String category,
         int favoriteCnt,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        String imageUrl
 ) {
     public PostListDTO(Post post) {
         this(
                 post.getId(),
                 post.getTitle(),
                 post.getPrice(),
-                post.getCategory().getLabel(),  // enum → 한글
+                post.getCategory().name(), // 영문 Enum 값으로 변경
                 post.getFavoriteCnt(),
-                post.getCreatedAt()
+                post.getCreatedAt(),
+                // postFiles 리스트가 비어있지 않으면 첫 번째 파일의 URL을, 비어있으면 null을 할당
+                !post.getPostFiles().isEmpty() ? post.getPostFiles().get(0).getFileUrl() : null
         );
     }
 }
