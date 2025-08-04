@@ -17,5 +17,6 @@ public interface FavoritePostRepository extends JpaRepository<FavoritePost, Long
     void deleteAllByPost(Post post);
     // 찜 취소 기능
     void deleteByMemberAndPost(Member member, Post post);
-
+    //찜 목록 조회
+    List<FavoritePost> findByMemberOrderByPostCreatedAtDesc(Member member);
 }

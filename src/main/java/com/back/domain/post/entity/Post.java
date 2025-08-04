@@ -25,9 +25,6 @@ import java.util.Optional;
 @Builder
 public class Post extends BaseEntity {
 
-    @Version
-    private Long version; // 동시성 충돌 방지용 버전 필드
-
     // Member ID(외래키)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
@@ -120,14 +117,6 @@ public class Post extends BaseEntity {
             throw new ServiceException("400-3", "이미 판매 완료된 게시글입니다.");
         }
         this.status = Status.SOLD_OUT;
-    }
-
-    // 찜 개수 증가 및 감소
-    public void increaseFavoriteCnt() {
-        this.favoriteCnt += 1;
-    }
-    public void decreaseFavoriteCnt() {
-        this.favoriteCnt = Math.max(0, this.favoriteCnt - 1); // 음수 방지
     }
 
 }

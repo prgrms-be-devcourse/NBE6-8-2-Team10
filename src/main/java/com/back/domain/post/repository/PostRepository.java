@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -27,16 +28,21 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("SELECT p FROM Post p WHERE p.title LIKE CONCAT('%', :keyword, '%') OR p.description LIKE CONCAT('%', :keyword, '%')")
     List<Post> searchByKeyword(String keyword);
 
-    @Modifying
-    @Query("UPDATE Post p SET p.favoriteCnt = p.favoriteCnt + 1 WHERE p.id = :id")
-    void increaseFavoriteCnt(@Param("id") Long id);
+    @Modifying(clearAutomatically = true)
+    @Transactional
+    @Query("UPDATE Post p SET p.favoriteCnt = p.favoriteCnt + 1 WHERE p.id = :postId")
+    void increaseFavoriteCnt(@Param("postId") Long postId);
 
-    @Modifying
-    @Query("UPDATE Post p SET p.favoriteCnt = p.favoriteCnt - 1 WHERE p.id = :id AND p.favoriteCnt > 0")
-    void decreaseFavoriteCnt(@Param("id") Long id);
+    @Modifying(clearAutomatically = true)
+    @Transactional
+    @Query("UPDATE Post p SET p.favoriteCnt = p.favoriteCnt - 1 WHERE p.id = :postId AND p.favoriteCnt > 0")
+    void decreaseFavoriteCnt(@Param("postId") Long postId);
+
+    @Query("SELECT p.favoriteCnt FROM Post p WHERE p.id = :postId")
+    int getFavoriteCnt(@Param("postId") Long postId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT p FROM Post p WHERE p.id = :id")
-    Optional<Post> findByIdForUpdate(@Param("id") Long id);
+    @Query("SELECT p FROM Post p WHERE p.id = :postId")
+    Optional<Post> findByIdForUpdate(@Param("postId") Long postId);
 
 }

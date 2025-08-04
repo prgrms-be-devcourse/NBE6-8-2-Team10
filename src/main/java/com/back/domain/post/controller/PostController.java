@@ -28,7 +28,15 @@ public class PostController {
         PostDetailDTO result = postService.createPost(dto);
         URI location = URI.create("/api/posts/" + result.id());
         return ResponseEntity.created(location).body(result);
-        }
+    }
+
+    @Operation(summary = "게시글 삭제")
+    @DeleteMapping("/{postId}")
+    public ResponseEntity<RsData<String>> deletePost(@PathVariable Long postId) {
+        RsData<String> result = postService.deletePost(postId);
+        return ResponseEntity.ok(result);
+    }
+
 
     //게시글 목록 조회
     @Operation(summary = "게시글 목록 조회")

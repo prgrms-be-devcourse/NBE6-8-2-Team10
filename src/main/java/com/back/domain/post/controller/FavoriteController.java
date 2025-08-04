@@ -1,14 +1,14 @@
 package com.back.domain.post.controller;
 
 import com.back.domain.post.dto.FavoriteResponseDTO;
+import com.back.domain.post.dto.PostListDTO;
 import com.back.domain.post.service.PostService;
-import com.back.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -23,6 +23,11 @@ public class FavoriteController {
         return postService.toggleFavorite(postId);
     }
 
+    @Operation(summary = "찜한 게시글 목록 조회")
+    @GetMapping("/me")
+    public ResponseEntity<List<PostListDTO>> getFavoritePosts() {
+        List<PostListDTO> result = postService.getFavoritePosts();
+        return ResponseEntity.ok(result);
+    }
 
 }
-
