@@ -12,6 +12,7 @@ public record AdminMemberResponse(
         String profileUrl,
         String status,
         LocalDateTime createdAt,
+        LocalDateTime modifiedAt,
         LocalDateTime deletedAt
 ) {
     public static AdminMemberResponse fromEntity(Member member) {
@@ -23,6 +24,7 @@ public record AdminMemberResponse(
                 member.getProfileUrl(),
                 member.getStatus().name(),
                 member.getCreatedAt(),
+                member.getModifiedAt(),
                 member.getDeletedAt()
         );
     }

@@ -2,7 +2,6 @@ package com.back.domain.admin.service;
 
 import com.back.domain.admin.dto.request.AdminUpdateMemberRequest;
 import com.back.domain.admin.dto.response.AdminMemberResponse;
-import com.back.domain.member.dto.response.MemberInfoResponse;
 import com.back.domain.member.entity.Member;
 import com.back.domain.member.entity.Role;
 import com.back.domain.member.repository.MemberRepository;
@@ -14,6 +13,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -59,14 +60,12 @@ public class AdminService {
         }
 
         // 3. 프로필 이미지 변경
-        if (request.profileUrl() != null && !request.profileUrl().isBlank()) {
-            member.updateProfileUrl(request.profileUrl());
-        }
-
-        // 4. 비밀번호 초기화
-        if (request.resetPassword()) {
-            member.updatePassword(passwordEncoder.encode("test1234!"));
-        }
+        // 빈 문자열이거나 공백만 있는 경우 null로 설정
+        String profileUrl = Optional.ofNullable(request.profileUrl())
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .orElse(null);
+        member.updateProfileUrl(profileUrl);
 
         memberRepository.save(member);
     }

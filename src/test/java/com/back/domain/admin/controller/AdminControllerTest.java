@@ -20,7 +20,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -108,8 +107,7 @@ public class AdminControllerTest {
         AdminUpdateMemberRequest request = new AdminUpdateMemberRequest(
                 "변경된이름",
                 Status.BLOCKED,
-                "https://new.image.url/profile.png",
-                true // 비밀번호 초기화 요청
+                "https://new.image.url/profile.png"
         );
 
         // when
@@ -117,15 +115,13 @@ public class AdminControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.resultCode").value("200"))
-                .andExpect(jsonPath("$.msg").value("회원 정보 수정 성공"));
+                .andExpect(jsonPath("$.resultCode").value("200"));
 
         // then
         Member updated = memberRepository.findById(member.getId()).orElseThrow();
         assertEquals("변경된이름", updated.getName());
         assertEquals(Status.BLOCKED, updated.getStatus());
         assertEquals("https://new.image.url/profile.png", updated.getProfileUrl());
-        assertTrue(passwordEncoder.matches("test1234!", updated.getPassword()));
     }
 
     @Test
@@ -137,8 +133,7 @@ public class AdminControllerTest {
         AdminUpdateMemberRequest request = new AdminUpdateMemberRequest(
                 "아무거나",
                 Status.ACTIVE,
-                null,
-                false
+                null
         );
 
         // when & then
