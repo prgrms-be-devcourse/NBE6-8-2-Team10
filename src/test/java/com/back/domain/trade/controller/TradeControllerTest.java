@@ -1,6 +1,6 @@
 package com.back.domain.trade.controller;
 
-import com.back.domain.files.files.service.FilesService;
+import com.back.domain.files.files.service.FileStorageService;
 import com.back.domain.member.entity.Member;
 import com.back.domain.trade.dto.TradeDto;
 import com.back.domain.trade.entity.Trade;
@@ -52,7 +52,7 @@ class TradeControllerTest {
     @Autowired
     private Rq rq;
     @MockBean
-    private FilesService filesService;
+    private FileStorageService fileStorageService;
 
     @Test
     @WithUserDetails("user2@user.com")
