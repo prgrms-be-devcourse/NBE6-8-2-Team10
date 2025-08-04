@@ -15,5 +15,4 @@ public record PostRequestDTO(
 
         @Positive(message = "가격은 0보다 커야 합니다.")
         int price
-
 ) {}

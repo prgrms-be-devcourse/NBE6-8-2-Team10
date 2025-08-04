@@ -30,6 +30,15 @@ public class PostController {
         return ResponseEntity.created(location).body(result);
     }
 
+    //게시글 수정
+    @Operation(summary = "게시글 수정")
+    @PatchMapping("/{postId}")
+    public ResponseEntity<PostDetailDTO> updatePost(@PathVariable Long postId, @Valid @RequestBody PostRequestDTO dto) {
+        PostDetailDTO result = postService.updatePost(postId, dto);
+        return ResponseEntity.ok(result);
+    }
+
+    //게시글 삭제
     @Operation(summary = "게시글 삭제")
     @DeleteMapping("/{postId}")
     public ResponseEntity<RsData<String>> deletePost(@PathVariable Long postId) {

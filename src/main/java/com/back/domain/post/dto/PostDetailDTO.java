@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 //게시글 상세 조회 응답용
 public record PostDetailDTO(
         long id,
+        String writerName,
         String title,
         String description,
         String category,
@@ -19,6 +20,7 @@ public record PostDetailDTO(
     public PostDetailDTO(Post post, boolean isLiked) {
         this(
                 post.getId(),
+                post.getMember().getName(),
                 post.getTitle(),
                 post.getDescription(),
                 post.getCategory().getLabel(),

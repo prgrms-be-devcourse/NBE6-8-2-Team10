@@ -119,4 +119,12 @@ public class Post extends BaseEntity {
         this.status = Status.SOLD_OUT;
     }
 
+    // 게시글 수정
+    public void updatePost(String title, String description, Category category, int price) {
+        this.title = title;
+        this.description = description;
+        this.category = category;
+        this.price = price;
+    }
+
 }

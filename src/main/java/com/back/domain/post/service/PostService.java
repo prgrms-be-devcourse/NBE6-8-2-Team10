@@ -34,7 +34,7 @@ public class PostService {
 
         // 카테고리 변환 예외 처리
         Post.Category category = Post.Category.from(dto.category())
-                .orElseThrow(() -> new ServiceException("BAD_REQUEST", "유효하지 않은 카테고리입니다."));
+                .orElseThrow(() -> new ServiceException("400", "유효하지 않은 카테고리입니다."));
 
         Post post = Post.builder()
                 .title(dto.title())
@@ -49,20 +49,42 @@ public class PostService {
         return new PostDetailDTO(saved, false);
     }
 
-    // 게시글 삭제
+    //게시글 수정
     @Transactional
-    public RsData<String> deletePost(Long postId) {
+    public PostDetailDTO updatePost(Long postId, PostRequestDTO dto) {
         Member member = getCurrentMemberOrThrow();
         Post post = getPostOrThrow(postId);
 
         // 본인 게시글인지 확인
         if (!post.getMember().getId().equals(member.getId())) {
-            throw new ServiceException("FORBIDDEN", "자신의 게시글만 삭제할 수 있습니다.");
+            throw new ServiceException("403", "자신의 게시글만 수정할 수 있습니다.");
+        }
+
+        // 카테고리 예외처리
+        Post.Category category = Post.Category.from(dto.category())
+                .orElseThrow(() -> new ServiceException("400", "유효하지 않은 카테고리입니다."));
+
+        // 수정 값 적용
+        post.updatePost(dto.title(), dto.description(), category, dto.price());
+        return new PostDetailDTO(post, favoritePostRepository.existsByMemberAndPost(member, post));
+    }
+
+    // 게시글 삭제
+    @Transactional
+    public RsData<String> deletePost(Long postId) {
+        Member member = getCurrentMemberOrThrow();
+
+        //예외처리
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new ServiceException("404", "이미 삭제되었거나 존재하지 않는 게시글입니다."));
+
+        // 본인 게시글인지 확인
+        if (!post.getMember().getId().equals(member.getId())) {
+            throw new ServiceException("403", "자신의 게시글만 삭제할 수 있습니다.");
         }
 
         postRepository.delete(post);
-
-        return new RsData<>("SUCCESS", "게시글 삭제 완료", null);
+        return new RsData<>(ResultCode.SUCCESS, "게시글 삭제 완료", null);
     }
 
 
@@ -131,8 +153,6 @@ public class PostService {
         }
     }
 
-
-
     //찜 목록 조회
     @Transactional(readOnly = true)
     public List<PostListDTO> getFavoritePosts() {
@@ -150,7 +170,7 @@ public class PostService {
     private Member getCurrentMemberOrThrow() {
         Member member = rq.getMember();
         if (member == null) {
-            throw new ServiceException("UNAUTHORIZED", "로그인이 필요합니다.");
+            throw new ServiceException("401", "로그인이 필요합니다.");
         }
         return member;
     }
@@ -158,13 +178,13 @@ public class PostService {
     // 게시글 조회 에러
     private Post getPostOrThrow(Long postId) {
         return postRepository.findById(postId)
-                .orElseThrow(() -> new ServiceException("NOT_FOUND", "게시글이 존재하지 않습니다."));
+                .orElseThrow(() -> new ServiceException("404", "게시글이 존재하지 않습니다."));
     }
 
     // 찜 기능 시 동기화 문제 처리 락
     private Post getPostForUpdateOrThrow(Long postId) {
         return postRepository.findByIdForUpdate(postId)
-                .orElseThrow(() -> new ServiceException("NOT_FOUND", "오류 입니다."));
+                .orElseThrow(() -> new ServiceException("404", "게시글이 존재하지 않습니다."));
     }
 
 }
