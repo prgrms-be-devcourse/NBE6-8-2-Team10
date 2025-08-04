@@ -21,7 +21,9 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/chat").withSockJS();
+        registry.addEndpoint("/chat")
+                .setAllowedOriginPatterns("http://localhost:3000")
+                .withSockJS();
     }
 
     @Override
@@ -37,7 +39,7 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
             @Override
             public Message<?> preSend(Message<?> message, MessageChannel channel) {
                 StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
-                
+
                 if (StompCommand.CONNECT.equals(accessor.getCommand())) {
                     // STOMP CONNECT 시 user-email 헤더에서 사용자 정보 추출
                     String userEmail = accessor.getFirstNativeHeader("user-email");
@@ -46,7 +48,7 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
                         System.out.println("WebSocket 사용자 설정: " + userEmail);
                     }
                 }
-                
+
                 return message;
             }
         });

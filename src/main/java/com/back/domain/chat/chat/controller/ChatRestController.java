@@ -22,7 +22,7 @@ public class ChatRestController {
     public RsData<List<MessageDto>> getChatRoomMessages(@PathVariable Long chatRoomId, Principal principal) {
         List<MessageDto> messageDtos = chatService.getChatRoomMessages(chatRoomId, principal);
 
-        return new RsData<>("200-1", "채팅방 메시지 조회 성공", messageDtos);
+        return new RsData<>("200", "채팅방 메시지 조회 성공", messageDtos);
     }
 
     @Operation(summary = "채팅방 생성")
@@ -30,7 +30,7 @@ public class ChatRestController {
     public RsData<Long> createChatRoom(@PathVariable Long postId, Principal principal){
         Long chatRoomId = chatService.createChatRoom(postId, principal.getName());
 
-        return new RsData<>("200-1", "채팅방 생성 성공", chatRoomId);
+        return new RsData<>("200", "채팅방 생성 성공", chatRoomId);
     }
 
     @Operation(summary = "내가 속한 채팅방 목록 조회")
@@ -38,7 +38,7 @@ public class ChatRestController {
     public RsData<List<ChatRoomDto>> getMyChatRooms(Principal principal) {
         List<ChatRoomDto> chatRooms = chatService.getMyChatRooms(principal);
 
-        return new RsData<>("200-1", "내 채팅방 목록 조회 성공", chatRooms);
+        return new RsData<>("200", "내 채팅방 목록 조회 성공", chatRooms);
     }
 
     @Operation(summary = "채팅방 삭제")
@@ -46,7 +46,7 @@ public class ChatRestController {
     public RsData<ChatRoomDto> deleteChatRoom(@PathVariable Long chatRoomId) {
         chatService.deleteChatRoom(chatRoomId);
 
-        return new RsData<>("200-1", "채팅방 삭제 성공");
+        return new RsData<>("200", "채팅방 삭제 성공");
     }
 
 

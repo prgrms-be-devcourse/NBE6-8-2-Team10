@@ -46,3 +46,10 @@ src/main/resources/*.json
 arctic-app-467400-f3-5f91160b658e.json
 .env
 *.env
+
+
+### 파일 이미지 경로 무시 ###
+C:/
+uploads/
+*.png
+
