@@ -44,6 +44,8 @@ public class SecurityConfig {
                         // 인증 없이 접근 가능한 경로들
                         .requestMatchers("/api/auth/signup", "/api/auth/login", "/api/auth/reissue",
                                             "/api/posts", "/api/posts/popular", "/api/posts/{postId}", "/files/**").permitAll()
+                        // 비밀번호 찾기 관련 엔드포인트 허용
+                        .requestMatchers("/api/members/verify-member", "/api/members/find-password").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
 
                         // Swagger 관련 경로들 - 더 구체적으로 설정

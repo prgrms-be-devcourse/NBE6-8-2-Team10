@@ -1,6 +1,7 @@
 package com.back.domain.member.controller;
 
 import com.back.domain.member.dto.request.MemberUpdateRequest;
+import com.back.domain.member.dto.request.FindPasswordRequest;
 import com.back.domain.member.dto.response.MemberMyPageResponse;
 import com.back.domain.member.dto.response.OtherMemberInfoResponse;
 import com.back.domain.member.service.MemberService;
@@ -128,5 +129,25 @@ public class MemberController {
             return ResponseEntity.ok(new RsData<>(ResultCode.SUCCESS, "프로필 이미지가 존재하지 않습니다.", null));
         }
         return ResponseEntity.ok(new RsData<>(ResultCode.SUCCESS, "프로필 이미지 URL 조회 성공", profileUrl));
+    }
+
+    // 회원 확인 (비밀번호 찾기용)
+    @PostMapping("/verify-member")
+    @Operation(summary = "회원 확인", description = "이름과 이메일로 회원 존재 여부를 확인합니다.")
+    public ResponseEntity<RsData<String>> verifyMember(@RequestBody FindPasswordRequest request) {
+        memberService.verifyMember(request);
+        return ResponseEntity.ok(
+                new RsData<>(ResultCode.SUCCESS, "회원 확인 성공")
+        );
+    }
+
+    // 비밀번호 찾기 및 변경
+    @PostMapping("/find-password")
+    @Operation(summary = "비밀번호 찾기 및 변경", description = "이름과 이메일을 확인하여 새 비밀번호로 변경합니다.")
+    public ResponseEntity<RsData<String>> findAndUpdatePassword(@RequestBody FindPasswordRequest request) {
+        memberService.findAndUpdatePassword(request);
+        return ResponseEntity.ok(
+                new RsData<>(ResultCode.SUCCESS, "비밀번호가 성공적으로 변경되었습니다.")
+        );
     }
 }

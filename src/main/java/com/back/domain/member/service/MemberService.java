@@ -4,6 +4,7 @@ package com.back.domain.member.service;
 import com.back.domain.auth.dto.request.MemberSignupRequest;
 import com.back.domain.files.files.service.FileStorageService;
 import com.back.domain.member.dto.request.MemberUpdateRequest;
+import com.back.domain.member.dto.request.FindPasswordRequest;
 import com.back.domain.member.dto.response.MemberMyPageResponse;
 import com.back.domain.member.dto.response.OtherMemberInfoResponse;
 import com.back.domain.member.entity.Member;
@@ -165,4 +166,37 @@ public class MemberService {
                 .orElseThrow(() -> new ServiceException(ResultCode.MEMBER_NOT_FOUND.code(), "회원을 찾을 수 없습니다."));
         return member.getProfileUrl();
     }
+
+    // 회원 확인 (비밀번호 찾기용)
+    public void verifyMember(FindPasswordRequest request) {
+        // 이름과 이메일로 회원 존재 여부만 확인 (더 빠른 쿼리)
+        boolean exists = memberRepository.existsByNameAndEmail(request.name(), request.email());
+        if (!exists) {
+            throw new ServiceException(ResultCode.MEMBER_NOT_FOUND.code(), "해당 정보와 일치하는 회원이 없습니다.");
+        }
+    }
+
+    // 비밀번호 찾기 및 변경
+    @Transactional
+    public void findAndUpdatePassword(FindPasswordRequest request) {
+        // 1. 이름과 이메일로 회원 찾기
+        Member member = memberRepository.findByNameAndEmail(request.name(), request.email())
+                .orElseThrow(() -> new ServiceException(ResultCode.MEMBER_NOT_FOUND.code(), "해당 정보와 일치하는 회원이 없습니다."));
+
+        // 2. 새 비밀번호와 확인 비밀번호가 제공되었는지 확인
+        if (request.newPassword() == null || request.newPassword().isBlank() || 
+            request.confirmPassword() == null || request.confirmPassword().isBlank()) {
+            throw new ServiceException(ResultCode.BAD_REQUEST.code(), "새 비밀번호와 확인 비밀번호를 모두 입력해주세요.");
+        }
+
+        // 3. 새 비밀번호와 확인 비밀번호 일치 여부 확인
+        if (!request.newPassword().equals(request.confirmPassword())) {
+            throw new ServiceException(ResultCode.BAD_REQUEST.code(), "새 비밀번호와 확인 비밀번호가 일치하지 않습니다.");
+        }
+
+        // 4. 새 비밀번호로 업데이트
+        member.updatePassword(passwordEncoder.encode(request.newPassword()));
+        memberRepository.save(member);
+    }
+    
 }
