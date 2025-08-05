@@ -104,8 +104,14 @@ public class AdminService {
         Post.Category category = Post.Category.from(request.category())
                 .orElseThrow(() -> new ServiceException(ResultCode.BAD_REQUEST.code(), "유효하지 않은 카테고리입니다."));
 
+        // Post.Status enum으로 변환
+        Post.Status status = Post.Status.valueOf(request.status());
+
         // 기존 updatePost 메서드 사용
         post.updatePost(request.title(), request.description(), category, request.price());
+        
+        // 상태 업데이트
+        post.updateStatus(status);
 
         postRepository.save(post);
     }
@@ -119,5 +125,19 @@ public class AdminService {
                 .orElseThrow(() -> new ServiceException(ResultCode.POST_NOT_FOUND.code(), "해당 특허가 존재하지 않습니다."));
 
         postRepository.delete(post);
+    }
+
+    // 회원 탈퇴 (관리자)
+    @Transactional
+    public void deleteMember(Long memberId) {
+        log.info("회원 탈퇴 요청 - memberId: {}", memberId);
+
+        // 1. 반드시 영속 상태로 다시 가져오기
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new ServiceException(ResultCode.MEMBER_NOT_FOUND.code(), "해당 회원이 존재하지 않습니다."));
+
+        // 2. 회원 탈퇴 처리
+        member.delete();
+        memberRepository.save(member);
     }
 }

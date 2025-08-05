@@ -223,7 +223,8 @@ public class AdminControllerTest {
                 "수정된 특허 제목",
                 "수정된 특허 설명입니다.",
                 "METHOD",
-                200000
+                200000,
+                "SALE"
         );
 
         // when
@@ -252,7 +253,8 @@ public class AdminControllerTest {
                 "수정된 제목",
                 "수정된 설명",
                 "PRODUCT",
-                100000
+                100000,
+                "SALE"
         );
 
         // when & then
@@ -273,7 +275,8 @@ public class AdminControllerTest {
                 "수정된 제목",
                 "수정된 설명",
                 "INVALID_CATEGORY",
-                100000
+                100000,
+                "SALE"
         );
 
         // when & then

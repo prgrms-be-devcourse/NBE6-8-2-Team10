@@ -12,5 +12,8 @@ public record AdminUpdatePatentRequest(
     @NotBlank(message = "카테고리는 필수입니다.")
     String category,
     
-    Integer price
+    Integer price,
+    
+    @NotBlank(message = "상태는 필수입니다.")
+    String status
 ) {} 

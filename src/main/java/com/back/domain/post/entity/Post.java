@@ -101,7 +101,8 @@ public class Post extends BaseEntity {
     //판매 상태 enum / .getlabel()로 한글 추출
     public enum Status {
         SALE("판매중"),
-        SOLD_OUT("판매완료");
+        SOLD_OUT("판매완료"),
+        SUSPENDED("판매중단");
 
         private final String label;
         Status(String label) {
@@ -111,7 +112,8 @@ public class Post extends BaseEntity {
             return label;
         }
     }
-    // 판매 상태 변경
+    
+    // 판매 상태 변경 (기존 메서드 - 판매완료로 변경)
     public void markAsSoldOut() {
         if (this.status == Status.SOLD_OUT) {
             throw new ServiceException("400-3", "이미 판매 완료된 게시글입니다.");
@@ -125,6 +127,11 @@ public class Post extends BaseEntity {
         this.description = description;
         this.category = category;
         this.price = price;
+    }
+
+    // 상태 업데이트
+    public void updateStatus(Status status) {
+        this.status = status;
     }
 
 }

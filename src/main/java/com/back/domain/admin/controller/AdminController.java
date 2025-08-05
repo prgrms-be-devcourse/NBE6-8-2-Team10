@@ -104,4 +104,14 @@ public class AdminController {
                 new RsData<>(ResultCode.SUCCESS, "특허 삭제 성공")
         );
     }
+
+    // 회원 탈퇴 API
+    @DeleteMapping("/members/{memberId}")
+    @Operation(summary = "회원 탈퇴 (관리자)", description = "관리자가 특정 회원을 탈퇴시킵니다.")
+    public ResponseEntity<RsData<String>> deleteMemberByAdmin(@PathVariable Long memberId) {
+        adminService.deleteMember(memberId);
+        return ResponseEntity.ok(
+                new RsData<>(ResultCode.SUCCESS, "회원 탈퇴 성공")
+        );
+    }
 } 
