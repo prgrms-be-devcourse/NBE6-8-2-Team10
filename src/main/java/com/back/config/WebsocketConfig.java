@@ -22,7 +22,11 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/chat")
-                .setAllowedOriginPatterns("http://localhost:3000")
+                .setAllowedOriginPatterns("http://localhost:3000",
+                        "http://34.64.160.179",
+                        "https://frontend-4abw.vercel.app/",
+                        "https://frontend-4abw.vercel.app",
+                        "https://www.devteam10.org")
                 .withSockJS();
     }
 

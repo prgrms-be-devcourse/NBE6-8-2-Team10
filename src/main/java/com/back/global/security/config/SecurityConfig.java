@@ -92,7 +92,10 @@ public class SecurityConfig {
         // 허용할 오리진 설정 (개발 환경)
         configuration.setAllowedOrigins(List.of(
             "http://localhost:3000",
-            "http://34.64.160.179" // 백엔드 서버의 공인 ip입니다.
+            "http://34.64.160.179",
+            "https://frontend-4abw.vercel.app/",
+            "https://frontend-4abw.vercel.app",
+            "https://www.devteam10.org"
         ));
         
         // 허용할 HTTP 메서드 설정 (PATCH 추가)
