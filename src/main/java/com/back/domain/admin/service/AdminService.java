@@ -1,10 +1,14 @@
 package com.back.domain.admin.service;
 
 import com.back.domain.admin.dto.request.AdminUpdateMemberRequest;
+import com.back.domain.admin.dto.request.AdminUpdatePatentRequest;
 import com.back.domain.admin.dto.response.AdminMemberResponse;
+import com.back.domain.admin.dto.response.AdminPatentResponse;
 import com.back.domain.member.entity.Member;
 import com.back.domain.member.entity.Role;
 import com.back.domain.member.repository.MemberRepository;
+import com.back.domain.post.entity.Post;
+import com.back.domain.post.repository.PostRepository;
 import com.back.global.exception.ServiceException;
 import com.back.global.rsData.ResultCode;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -22,6 +27,7 @@ import java.util.Optional;
 public class AdminService {
 
     private final MemberRepository memberRepository;
+    private final PostRepository postRepository;
     private final PasswordEncoder passwordEncoder;
 
     // 전체 회원 목록 조회(관리자 제외)
@@ -68,5 +74,50 @@ public class AdminService {
         member.updateProfileUrl(profileUrl);
 
         memberRepository.save(member);
+    }
+
+    // 전체 특허 목록 조회
+    public Page<AdminPatentResponse> getAllPatents(Pageable pageable) {
+        log.info("전체 특허 목록 조회 요청");
+        return postRepository.findAll(pageable)
+                .map(AdminPatentResponse::fromEntity);
+    }
+
+    // 특허 상세 조회
+    public AdminPatentResponse getPatentDetail(Long patentId) {
+        log.info("특허 상세 조회 요청 - patentId: {}", patentId);
+        Post post = postRepository.findById(patentId)
+                .orElseThrow(() -> new ServiceException(ResultCode.POST_NOT_FOUND.code(), "존재하지 않는 특허입니다."));
+
+        return AdminPatentResponse.fromEntity(post);
+    }
+
+    // 특허 정보 수정
+    @Transactional
+    public void updatePatentInfo(Long patentId, AdminUpdatePatentRequest request) {
+        log.info("특허 정보 수정 요청 - patentId: {}", patentId);
+
+        Post post = postRepository.findById(patentId)
+                .orElseThrow(() -> new ServiceException(ResultCode.POST_NOT_FOUND.code(), "해당 특허가 존재하지 않습니다."));
+
+        // Post.Category enum으로 변환
+        Post.Category category = Post.Category.from(request.category())
+                .orElseThrow(() -> new ServiceException(ResultCode.BAD_REQUEST.code(), "유효하지 않은 카테고리입니다."));
+
+        // 기존 updatePost 메서드 사용
+        post.updatePost(request.title(), request.description(), category, request.price());
+
+        postRepository.save(post);
+    }
+
+    // 특허 삭제
+    @Transactional
+    public void deletePatent(Long patentId) {
+        log.info("특허 삭제 요청 - patentId: {}", patentId);
+
+        Post post = postRepository.findById(patentId)
+                .orElseThrow(() -> new ServiceException(ResultCode.POST_NOT_FOUND.code(), "해당 특허가 존재하지 않습니다."));
+
+        postRepository.delete(post);
     }
 }
