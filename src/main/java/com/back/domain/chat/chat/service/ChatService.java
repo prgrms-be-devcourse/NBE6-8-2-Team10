@@ -8,6 +8,7 @@ import com.back.domain.chat.chat.entity.RoomParticipant;
 import com.back.domain.chat.chat.repository.ChatRoomRepository;
 import com.back.domain.chat.chat.repository.MessageRepository;
 import com.back.domain.chat.chat.repository.RoomParticipantRepository;
+import com.back.domain.chat.redis.service.RedisMessageService;
 import com.back.domain.member.entity.Member;
 import com.back.domain.member.repository.MemberRepository;
 import com.back.domain.post.entity.Post;
@@ -33,6 +34,7 @@ public class ChatService {
     private final ChatRoomRepository chatRoomRepository;
     private final PostRepository postRepository;
     private final RoomParticipantRepository roomParticipantRepository;
+    private final RedisMessageService redisMessageService; // Redis 서비스 추가
 
     @Transactional
     public Message saveMessage(MessageDto chatMessage) {
@@ -206,16 +208,50 @@ public class ChatService {
                 .findByChatRoomIdAndMemberIdAndIsActiveTrue(chatRoomId, member.getId())
                 .orElseThrow(() -> new ServiceException("404-5", "채팅방 참여자가 아닙니다."));
 
+        // 나가기 전에 다른 참여자들에게 알림 메시지 전송
+        sendLeaveNotificationToOtherParticipants(chatRoomId, member);
+
         participant.setActive(false);
         participant.setLeftAt(LocalDateTime.now());
         roomParticipantRepository.save(participant);
 
         boolean hasActiveParticipants = roomParticipantRepository.existsByChatRoomIdAndIsActiveTrue(chatRoomId);
 
+        int activeCount = roomParticipantRepository.findByChatRoomIdAndIsActiveTrue(chatRoomId).size();
+
         if(!hasActiveParticipants) {
             ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
                     .orElseThrow(() -> new ServiceException("404-4", "존재하지 않는 채팅방입니다."));
             chatRoomRepository.delete(chatRoom);
+        }
+    }
+
+    /**
+     * 채팅방을 나가는 사용자 외의 다른 참여자들에게 나가기 알림 전송
+     */
+    private void sendLeaveNotificationToOtherParticipants(Long chatRoomId, Member leavingMember) {
+        try {
+            log.info("=== 채팅방 나가기 알림 전송 시작 ===");
+            log.info("나가는 사용자: {} (ID: {})", leavingMember.getName(), leavingMember.getId());
+            log.info("채팅방 ID: {}", chatRoomId);
+
+            // 나가기 알림 메시지 생성
+            MessageDto leaveNotification = new MessageDto();
+            leaveNotification.setSender("System");
+            leaveNotification.setSenderName("시스템");
+            leaveNotification.setContent(leavingMember.getName() + "님이 채팅방을 나갔습니다.");
+            leaveNotification.setSenderId(-1L); // 시스템 메시지 구분용
+            leaveNotification.setChatRoomId(chatRoomId);
+            leaveNotification.setMessageType("LEAVE_NOTIFICATION"); // 메시지 타입 추가
+
+            // Redis를 통해 알림 메시지 발송
+            redisMessageService.publishMessage(leaveNotification);
+            
+            log.info("✅ 채팅방 나가기 알림 전송 완료");
+            
+        } catch (Exception e) {
+            log.error("❌ 채팅방 나가기 알림 전송 실패: {}", e.getMessage(), e);
+            // 알림 전송 실패해도 나가기 로직은 계속 진행
         }
     }
 }

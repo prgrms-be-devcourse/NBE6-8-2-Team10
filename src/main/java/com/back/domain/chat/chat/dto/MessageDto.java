@@ -22,6 +22,7 @@ public class MessageDto {
     private String senderEmail;
     @NonNull
     private String content;
+    private String messageType; // 메시지 타입 필드 추가 (일반 메시지, 나가기 알림 등)
 
     // Jackson JSON 역직렬화를 위한 sender 필드 (senderName과 동일)
 
@@ -33,13 +34,14 @@ public class MessageDto {
             @JsonProperty("chatRoomId") Long chatRoomId,
             @JsonProperty("senderName") String senderName,
             @JsonProperty("senderEmail") String senderEmail,
-            @JsonProperty("content") String content) {
+            @JsonProperty("content") String content,
+            @JsonProperty("messageType") String messageType) {
         this.senderId = senderId;
         this.chatRoomId = chatRoomId;
         this.senderName = senderName;
         this.senderEmail = senderEmail;
         this.content = content;
-
+        this.messageType = messageType;
     }
 
     public MessageDto(String senderName, String content, Long senderId, Long chatRoomId) {
