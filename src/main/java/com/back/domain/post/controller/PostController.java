@@ -70,4 +70,12 @@ public class PostController {
         return ResponseEntity.ok(result);
     }
 
+    // 내 게시글 목록 조회
+    @Operation(summary = "내 게시글 목록 조회")
+    @GetMapping("/me")
+    public ResponseEntity<List<PostListDTO>> getMyPosts() {
+        List<PostListDTO> result = postService.getMyPosts();
+        return ResponseEntity.ok(result);
+    }
+
 }

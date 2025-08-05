@@ -164,6 +164,16 @@ public class PostService {
                 .toList();
     }
 
+    // 내 게시글 목록 조회
+    @Transactional(readOnly = true)
+    public List<PostListDTO> getMyPosts() {
+        Member member = getCurrentMemberOrThrow();
+        return postRepository.findByMember(member)
+                .stream()
+                .map(PostListDTO::new)
+                .toList();
+    }
+
     //------------------------------------------------------------------
 
     //현재 로그인 유저 확인
