@@ -105,11 +105,11 @@ public class ChatService {
         log.debug("게시글 ID: " + postId);
 
 
-        log.debug("=== 전체 멤버 확인 ===");
-        List<Member> allMembers = memberRepository.findAll();
-        for (Member m : allMembers) {
-            log.debug("멤버: " + m.getEmail() + " (ID: " + m.getId() + ")");
-        }
+//        log.debug("=== 전체 멤버 확인 ===");
+//        List<Member> allMembers = memberRepository.findAll();
+//        for (Member m : allMembers) {
+//            log.debug("멤버: " + m.getEmail() + " (ID: " + m.getId() + ")");
+//        }
 
 
         Long existingChatRoomId = findExistingChatRoom(postId, requester.getId(), postAuthor.getId());
@@ -135,28 +135,32 @@ public class ChatService {
 
     @Transactional
     public Long findExistingChatRoom(Long postId, Long requesterId, Long postAuthorId) {
-        // 요청자가 참여한 해당 게시글의 채팅방들 찾기
-        List<RoomParticipant> requesterParticipations = roomParticipantRepository
-            .findByChatRoomPostIdAndMemberIdAndIsActiveTrue(postId, requesterId);
-
-        log.debug("요청자가 참여한 채팅방 수: " + requesterParticipations.size());
-
-        // 각 채팅방에서 postAuthor도 참여하고 있고, 참여자가 2명인지 확인
-        for (RoomParticipant participation : requesterParticipations) {
-            ChatRoom chatRoom = participation.getChatRoom();
-
-            // 이 채팅방의 참여자 수와 postAuthor 참여 여부 확인
-            List<RoomParticipant> participants = roomParticipantRepository
-                .findByChatRoomIdAndIsActiveTrue(chatRoom.getId());
-
-            log.debug("채팅방 " + chatRoom.getId() + " 참여자 수: " + participants.size());
-
-            if (participants.size() == 2) {
-                boolean hasPostAuthor = participants.stream()
+        // 해당 게시글에 대한 요청자가 만든 채팅방이 있는지 확인 (활성/비활성 무관)
+        List<ChatRoom> allPostChatRooms = chatRoomRepository.findByPostId(postId);
+        
+        for (ChatRoom chatRoom : allPostChatRooms) {
+            // 이 채팅방의 모든 참여자 확인 (활성/비활성 무관)
+            List<RoomParticipant> allParticipants = roomParticipantRepository
+                .findByChatRoomId(chatRoom.getId());
+                
+            log.debug("채팅방 " + chatRoom.getId() + " 전체 참여자 수: " + allParticipants.size());
+                
+            // 참여자가 정확히 2명이고, 요청자와 postAuthor가 모두 포함되어 있는지 확인
+            if (allParticipants.size() == 2) {
+                boolean hasRequester = allParticipants.stream()
+                    .anyMatch(p -> p.getMember().getId().equals(requesterId));
+                boolean hasPostAuthor = allParticipants.stream()
                     .anyMatch(p -> p.getMember().getId().equals(postAuthorId));
-
-                if (hasPostAuthor) {
-                    log.debug(" 1대1 채팅방 발견: " + chatRoom.getId());
+                    
+                if (hasRequester && hasPostAuthor) {
+                    // 기존 채팅방 발견 - 두 참여자 모두 다시 활성화
+                    for (RoomParticipant participant : allParticipants) {
+                        participant.setActive(true);
+                        participant.setLeftAt(null); // 나간 시간 초기화
+                    }
+                    roomParticipantRepository.saveAll(allParticipants);
+                    
+                    log.debug("기존 채팅방 재활용: " + chatRoom.getId());
                     return chatRoom.getId();
                 }
             }
@@ -246,9 +250,9 @@ public class ChatService {
 
             // Redis를 통해 알림 메시지 발송
             redisMessageService.publishMessage(leaveNotification);
-            
+
             log.info("✅ 채팅방 나가기 알림 전송 완료");
-            
+
         } catch (Exception e) {
             log.error("❌ 채팅방 나가기 알림 전송 실패: {}", e.getMessage(), e);
             // 알림 전송 실패해도 나가기 로직은 계속 진행

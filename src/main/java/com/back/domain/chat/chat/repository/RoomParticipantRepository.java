@@ -18,4 +18,7 @@ public interface RoomParticipantRepository extends JpaRepository<RoomParticipant
     Optional<RoomParticipant> findByChatRoomIdAndMemberIdAndIsActiveTrue(Long chatRoomId, Long id);
 
     boolean existsByChatRoomIdAndIsActiveTrue(Long chatRoomId);
+    
+    // 활성/비활성 무관하게 채팅방의 모든 참여자 조회
+    List<RoomParticipant> findByChatRoomId(Long chatRoomId);
 }
