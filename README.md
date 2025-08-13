@@ -32,8 +32,7 @@
 <img width="941" height="831" alt="image" src="https://github.com/user-attachments/assets/cb708a33-94a5-4982-91d9-df2334199ad3" />
 
 ## 시스템 구성도
-<img width="1037" height="822" alt="시스템 구성도  10팀_2차 팀프로젝트" src="https://github.com/user-attachments/assets/0445d411-6214-42e3-b1a8-ed77f165fb4f" />
-
+<img width="939" height="822" alt="시스템구성도(배포) drawio" src="https://github.com/user-attachments/assets/01ccb308-1d56-446a-9b93-60c2225e8813" />
 
 
 ## 🛠️ 주요 기능 구현 목록
