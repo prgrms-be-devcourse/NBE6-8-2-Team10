@@ -10,6 +10,7 @@
 
 ---
 링크 : https://frontend-devteam-10.vercel.app/
+(현재: Discontinued)
 ---
 
 ## 👨‍👩‍👧‍👦 팀원 소개
